@@ -1,0 +1,7 @@
+#!/usr/bin/env sh
+
+echo "[LastBite API] Running pre-push tests..."
+
+npm run test
+
+echo "[LastBite API] Pre-push checks passed"
