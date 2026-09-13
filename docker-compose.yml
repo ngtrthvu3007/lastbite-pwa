@@ -1,0 +1,166 @@
+# Local development only. Production deployment stays in infra/ and k8s/.
+
+x-node-app: &node-app
+  init: true
+  environment:
+    NODE_ENV: development
+    CHOKIDAR_USEPOLLING: "true"
+    WATCHPACK_POLLING: "true"
+    TSC_WATCHFILE: DynamicPriorityPolling
+    TSC_WATCHDIRECTORY: DynamicPriorityPolling
+    npm_config_update_notifier: "false"
+  volumes:
+    - .:/workspace
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?Set POSTGRES_DB in docker/dev/.env}
+      POSTGRES_USER: ${POSTGRES_USER:?Set POSTGRES_USER in docker/dev/.env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in docker/dev/.env}
+    ports:
+      - "54320:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lastbite -d lastbite"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "63790:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  rabbitmq:
+    image: rabbitmq:4.3.5-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:?Set RABBITMQ_DEFAULT_USER in docker/dev/.env}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:?Set RABBITMQ_DEFAULT_PASS in docker/dev/.env}
+    ports:
+      - "56720:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  minio:
+    image: quay.io/minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:?Set MINIO_ROOT_USER in docker/dev/.env}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?Set MINIO_ROOT_PASSWORD in docker/dev/.env}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+
+  lb-api:
+    <<: *node-app
+    env_file:
+      - apps/lb-api/.env
+    build:
+      context: .
+      dockerfile: docker/dev/lb-api.Dockerfile
+    working_dir: /workspace/apps/lb-api
+    command: sh /workspace/docker/dev/start-node-dev.sh lb-api npm run start
+    environment:
+      NODE_ENV: development
+      APP_ENV: development
+      PORT: "3000"
+      DATABASE_URL: ${LOCAL_DATABASE_URL:?Set LOCAL_DATABASE_URL in docker/dev/.env}
+      REDIS_URL: ${LOCAL_REDIS_URL:?Set LOCAL_REDIS_URL in docker/dev/.env}
+      RABBITMQ_URL: ${LOCAL_RABBITMQ_URL:?Set LOCAL_RABBITMQ_URL in docker/dev/.env}
+      S3_ENDPOINT: ${LOCAL_S3_ENDPOINT:?Set LOCAL_S3_ENDPOINT in docker/dev/.env}
+      S3_ACCESS_KEY_ID: ${LOCAL_S3_ACCESS_KEY_ID:?Set LOCAL_S3_ACCESS_KEY_ID in docker/dev/.env}
+      S3_SECRET_ACCESS_KEY: ${LOCAL_S3_SECRET_ACCESS_KEY:?Set LOCAL_S3_SECRET_ACCESS_KEY in docker/dev/.env}
+      S3_BUCKET: ${LOCAL_S3_BUCKET:?Set LOCAL_S3_BUCKET in docker/dev/.env}
+      CHOKIDAR_USEPOLLING: "true"
+      WATCHPACK_POLLING: "true"
+      TSC_WATCHFILE: DynamicPriorityPolling
+      TSC_WATCHDIRECTORY: DynamicPriorityPolling
+      npm_config_update_notifier: "false"
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/workspace
+      - lb_api_node_modules:/workspace/apps/lb-api/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      minio:
+        condition: service_started
+    profiles: ["api", "apps"]
+
+  lb-customer:
+    <<: *node-app
+    build:
+      context: .
+      dockerfile: docker/dev/lb-customer.Dockerfile
+    working_dir: /workspace/apps/lb-customer
+    command: sh /workspace/docker/dev/start-node-dev.sh lb-customer npm run dev -- --host 0.0.0.0
+    environment:
+      NODE_ENV: development
+      HOST: 0.0.0.0
+      NUXT_HOST: 0.0.0.0
+      NUXT_PUBLIC_API_URL: ${NUXT_PUBLIC_API_URL:?Set NUXT_PUBLIC_API_URL in docker/dev/.env}
+      CHOKIDAR_USEPOLLING: "true"
+      WATCHPACK_POLLING: "true"
+      TSC_WATCHFILE: DynamicPriorityPolling
+      TSC_WATCHDIRECTORY: DynamicPriorityPolling
+      npm_config_update_notifier: "false"
+    ports:
+      - "5173:5173"
+    volumes:
+      - .:/workspace
+      - lb_customer_node_modules:/workspace/apps/lb-customer/node_modules
+    profiles: ["customer", "apps"]
+
+  lb-merchant:
+    <<: *node-app
+    build:
+      context: .
+      dockerfile: docker/dev/lb-merchant.Dockerfile
+    working_dir: /workspace/apps/lb-merchant
+    command: sh /workspace/docker/dev/start-node-dev.sh lb-merchant npm run dev -- --host 0.0.0.0
+    environment:
+      NODE_ENV: development
+      VITE_API_URL: ${VITE_API_URL:?Set VITE_API_URL in docker/dev/.env}
+      CHOKIDAR_USEPOLLING: "true"
+      WATCHPACK_POLLING: "true"
+      TSC_WATCHFILE: DynamicPriorityPolling
+      TSC_WATCHDIRECTORY: DynamicPriorityPolling
+      npm_config_update_notifier: "false"
+    ports:
+      - "5174:5174"
+    volumes:
+      - .:/workspace
+      - lb_merchant_node_modules:/workspace/apps/lb-merchant/node_modules
+    profiles: ["merchant", "apps"]
+
+volumes:
+  postgres_data:
+  redis_data:
+  rabbitmq_data:
+  minio_data:
+  lb_api_node_modules:
+  lb_customer_node_modules:
+  lb_merchant_node_modules:

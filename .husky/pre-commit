@@ -1,0 +1,35 @@
+#!/usr/bin/env sh
+
+has_staged_changes() {
+  git diff --cached --name-only | grep -q "^$1/"
+}
+
+run_in_app() {
+  app_path="$1"
+  app_name="$2"
+  shift 2
+
+  if ! has_staged_changes "$app_path"; then
+    echo "[$app_name] No staged changes. Skipping."
+    return 0
+  fi
+
+  echo "[$app_name] Staged changes found. Running pre-commit checks..."
+  (
+    cd "$app_path" || exit 1
+
+    step=1
+    total=$#
+    for command in "$@"; do
+      echo "[$app_name] $step/$total npm run $command"
+      npm run "$command" || exit 1
+      step=$((step + 1))
+    done
+  )
+}
+
+run_in_app "apps/lb-api" "LastBite API" format lint build
+run_in_app "apps/lb-merchant" "LastBite Merchant" format lint build
+run_in_app "apps/lb-customer" "LastBite Customer" build
+
+echo "[LastBite] Pre-commit checks passed ✅"
