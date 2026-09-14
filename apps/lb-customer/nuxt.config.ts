@@ -5,6 +5,12 @@ import { lastbitePreset } from './app/primevue/lastbite-preset'
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
+  runtimeConfig: {
+    public: {
+      graphqlEndpoint:
+        process.env.NUXT_PUBLIC_GRAPHQL_ENDPOINT || 'http://localhost:3000/graphql',
+    },
+  },
   devServer: {
     host: '0.0.0.0',
     port: 5173,
