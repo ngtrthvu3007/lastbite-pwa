@@ -121,7 +121,7 @@ services:
       NODE_ENV: development
       HOST: 0.0.0.0
       NUXT_HOST: 0.0.0.0
-      NUXT_PUBLIC_API_URL: ${NUXT_PUBLIC_API_URL:?Set NUXT_PUBLIC_API_URL in docker/dev/.env}
+      NUXT_PUBLIC_GRAPHQL_ENDPOINT: ${NUXT_PUBLIC_GRAPHQL_ENDPOINT:?Set NUXT_PUBLIC_GRAPHQL_ENDPOINT in docker/dev/.env}
       CHOKIDAR_USEPOLLING: "true"
       WATCHPACK_POLLING: "true"
       TSC_WATCHFILE: DynamicPriorityPolling
@@ -143,7 +143,7 @@ services:
     command: sh /workspace/docker/dev/start-node-dev.sh lb-merchant npm run dev -- --host 0.0.0.0
     environment:
       NODE_ENV: development
-      VITE_API_URL: ${VITE_API_URL:?Set VITE_API_URL in docker/dev/.env}
+      VITE_GRAPHQL_ENDPOINT: ${VITE_GRAPHQL_ENDPOINT:?Set VITE_GRAPHQL_ENDPOINT in docker/dev/.env}
       CHOKIDAR_USEPOLLING: "true"
       WATCHPACK_POLLING: "true"
       TSC_WATCHFILE: DynamicPriorityPolling
