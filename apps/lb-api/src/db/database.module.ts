@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { drizzle } from 'drizzle-orm/node-postgres';
+import { drizzle, NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 import {
   getDatabaseConnectionString,
@@ -9,6 +9,7 @@ import * as schema from './schema';
 
 export const DB = Symbol('DB');
 export const PG_POOL = Symbol('PG_POOL');
+export type Database = NodePgDatabase<typeof schema>;
 
 @Module({
   providers: [

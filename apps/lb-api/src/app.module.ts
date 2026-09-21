@@ -6,11 +6,13 @@ import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { DatabaseModule } from './db/database.module';
 import { HealthResolver } from './health/health.resolver';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     DatabaseModule,
+    AuthModule,
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       autoSchemaFile: true,
@@ -20,4 +22,4 @@ import { HealthResolver } from './health/health.resolver';
   controllers: [AppController],
   providers: [AppService, HealthResolver],
 })
-export class AppModule { }
+export class AppModule {}

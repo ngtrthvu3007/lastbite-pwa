@@ -15,8 +15,10 @@ describe('AppController', () => {
   });
 
   describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(appController.getHello()).toBe('Hello World!');
+    it('should return the API status message', () => {
+      expect(appController.getHello()).toBe(
+        'Hello It works! LastBite API is running Successfully. You can now access the GraphQL playground at /graphql',
+      );
     });
   });
 });
