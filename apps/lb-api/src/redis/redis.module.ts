@@ -1,10 +1,4 @@
-import {
-  Injectable,
-  Logger,
-  Module,
-  OnApplicationShutdown,
-  OnModuleInit,
-} from '@nestjs/common';
+import { Injectable, Logger, Module, OnApplicationShutdown, OnModuleInit } from '@nestjs/common';
 import { createClient } from 'redis';
 
 @Injectable()
@@ -17,7 +11,6 @@ export class RedisService implements OnModuleInit, OnApplicationShutdown {
     if (!process.env.REDIS_URL) {
       throw new Error('Missing required environment variable: REDIS_URL');
     }
-
   }
 
   async onModuleInit(): Promise<void> {
@@ -38,6 +31,17 @@ export class RedisService implements OnModuleInit, OnApplicationShutdown {
   async set(key: string, value: string, ttlSeconds: number): Promise<void> {
     await this.ensureConnected();
     await this.client.set(key, value, { EX: ttlSeconds });
+  }
+
+  async get(key: string): Promise<string | null> {
+    await this.ensureConnected();
+    const value = await this.client.get(key);
+    return typeof value === 'string' ? value : null;
+  }
+
+  async del(key: string): Promise<void> {
+    await this.ensureConnected();
+    await this.client.del(key);
   }
 
   private createClient() {

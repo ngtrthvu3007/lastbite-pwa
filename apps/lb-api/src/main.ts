@@ -9,6 +9,7 @@ async function bootstrap() {
     .setTitle('LastBite API')
     .setDescription('LastBite backend API')
     .setVersion('0.1.0')
+    .addCookieAuth('lb_session', undefined, 'lb_session')
     .build();
   const swaggerDocument = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup('api/docs', app, swaggerDocument);

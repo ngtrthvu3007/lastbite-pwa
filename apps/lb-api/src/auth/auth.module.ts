@@ -6,6 +6,8 @@ import { CognitoUserService } from './cognito-user.service';
 import { AuthController } from './auth.controller';
 import { CognitoOAuthService } from './cognito-oauth.service';
 import { OAuthTransactionService } from './oauth-transaction.service';
+import { AuthGuard } from './auth.guard';
+import { AuthService } from './auth.service';
 
 @Module({
   controllers: [AuthController],
@@ -15,8 +17,9 @@ import { OAuthTransactionService } from './oauth-transaction.service';
     CognitoOAuthService,
     CognitoUserService,
     OAuthTransactionService,
+    AuthGuard,
+    AuthService,
   ],
-  exports: [CognitoUserService, AuthSessionService],
+  exports: [AuthService],
 })
-export class AuthModule { }
-
+export class AuthModule {}
