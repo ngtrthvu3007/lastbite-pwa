@@ -1,4 +1,5 @@
 import { createClient } from 'redis';
+import { TEST_REDIS_ENV, useTestEnvironment } from '../test-support/test-environment';
 import { RedisService } from './redis.module';
 
 jest.mock('redis', () => ({
@@ -19,18 +20,14 @@ function createRedisClient(connect: jest.Mock) {
 }
 
 describe('RedisService', () => {
-  const previousUrl = process.env.REDIS_URL;
+  let restoreEnvironment: () => void;
 
   beforeAll(() => {
-    process.env.REDIS_URL = 'redis://localhost:6379';
+    restoreEnvironment = useTestEnvironment(TEST_REDIS_ENV);
   });
 
   afterAll(() => {
-    if (previousUrl === undefined) {
-      delete process.env.REDIS_URL;
-    } else {
-      process.env.REDIS_URL = previousUrl;
-    }
+    restoreEnvironment();
   });
 
   afterEach(() => {
@@ -38,9 +35,7 @@ describe('RedisService', () => {
   });
 
   it('uses a fresh client after the startup connection fails', async () => {
-    const firstClient = createRedisClient(
-      jest.fn().mockRejectedValue(new Error('offline')),
-    );
+    const firstClient = createRedisClient(jest.fn().mockRejectedValue(new Error('offline')));
     const recoveredClient = createRedisClient(jest.fn().mockResolvedValue({}));
     jest
       .mocked(createClient)

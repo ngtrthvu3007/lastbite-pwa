@@ -1,29 +1,31 @@
 import { RedisService } from '../redis/redis.module';
+import { TEST_AUTH_ENV, useTestEnvironment } from '../test-support/test-environment';
 import { OAuthTransactionService } from './oauth-transaction.service';
 
 describe('OAuthTransactionService', () => {
+  let restoreEnvironment: () => void;
+
   const redis = {
     getDel: jest.fn(),
     set: jest.fn(),
   };
 
+  beforeAll(() => {
+    restoreEnvironment = useTestEnvironment(TEST_AUTH_ENV);
+  });
+
+  afterAll(() => {
+    restoreEnvironment();
+  });
+
   beforeEach(() => {
-    process.env.COGNITO_CLIENT_ID = 'client-id';
-    process.env.COGNITO_DOMAIN = 'https://auth.example.com';
-    process.env.COGNITO_REDIRECT_URI = 'http://localhost:3000/auth/callback';
-    process.env.CUSTOMER_APP_URL = 'http://localhost:5173';
-    process.env.MERCHANT_APP_URL = 'http://localhost:5174';
     jest.clearAllMocks();
   });
 
   it('stores a short-lived transaction and builds a direct Google authorize URL', async () => {
     const service = new OAuthTransactionService(redis as unknown as RedisService);
 
-    const result = await service.begin(
-      'customer',
-      'google',
-      'http://localhost:5173/orders',
-    );
+    const result = await service.begin('customer', 'google', 'http://customer.test/orders');
 
     const url = new URL(result);
     const state = url.searchParams.get('state');
@@ -38,7 +40,7 @@ describe('OAuthTransactionService', () => {
       expect.not.stringContaining(state as string),
       JSON.stringify({
         nonce,
-        returnTo: 'http://localhost:5173/orders',
+        returnTo: 'http://customer.test/orders',
       }),
       300,
     );
@@ -57,14 +59,14 @@ describe('OAuthTransactionService', () => {
     redis.getDel.mockResolvedValueOnce(
       JSON.stringify({
         nonce: 'nonce',
-        returnTo: 'http://localhost:5174/posts',
+        returnTo: 'http://merchant.test/posts',
       }),
     );
     const service = new OAuthTransactionService(redis as unknown as RedisService);
 
     await expect(service.consume('state')).resolves.toEqual({
       nonce: 'nonce',
-      returnTo: 'http://localhost:5174/posts',
+      returnTo: 'http://merchant.test/posts',
     });
     expect(redis.getDel).toHaveBeenCalledTimes(1);
   });

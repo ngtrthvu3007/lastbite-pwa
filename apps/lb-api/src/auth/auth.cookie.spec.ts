@@ -1,5 +1,10 @@
 import { Response } from 'express';
-import { AUTH_COOKIE_NAME, setSessionCookie } from './auth.cookie';
+import {
+  AUTH_COOKIE_NAME,
+  clearSessionCookie,
+  getSessionToken,
+  setSessionCookie,
+} from './auth.cookie';
 
 describe('setSessionCookie', () => {
   it('uses the production cookie security settings', () => {
@@ -16,5 +21,23 @@ describe('setSessionCookie', () => {
       path: '/',
       expires: expiresAt,
     });
+  });
+
+  it('clears the session cookie with the same security options', () => {
+    const clearCookie = jest.fn();
+    const response = { clearCookie } as unknown as Response;
+
+    clearSessionCookie(response, 'production');
+
+    expect(clearCookie).toHaveBeenCalledWith(AUTH_COOKIE_NAME, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'lax',
+      path: '/',
+    });
+  });
+
+  it('reads only the LastBite session token from a Cookie header', () => {
+    expect(getSessionToken('theme=light; lb_session=opaque-token')).toBe('opaque-token');
   });
 });
