@@ -1,0 +1,96 @@
+name: CI
+
+# One workflow with no path filters on purpose: required status checks must always
+# report. A workflow skipped by `paths:` never creates its check, so the PR would
+# wait forever. Job names below are the names to mark as required in branch protection.
+on:
+  pull_request:
+    branches: [main, dev]
+  push:
+    branches: [main, dev]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lb-api:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: apps/lb-api
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/lb-api/package-lock.json
+
+      - run: npm ci
+
+      # The package.json scripts use --fix / --write; CI must only report.
+      - name: Lint
+        run: npx eslint "{src,apps,libs,test}/**/*.ts"
+
+      - name: Prettier
+        run: npx prettier --check "src/**/*.ts" "test/**/*.ts"
+
+      - name: Build
+        run: npm run build
+
+  lb-merchant:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: apps/lb-merchant
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/lb-merchant/package-lock.json
+
+      - run: npm ci
+
+      - name: Lint
+        run: |
+          npx oxlint .
+          npx eslint .
+
+      - name: Prettier
+        run: npx prettier --check src/
+
+      # Runs type-check and the production build.
+      - name: Build
+        run: npm run build
+
+  lb-customer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: apps/lb-customer
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/lb-customer/package-lock.json
+
+      # postinstall runs `nuxt prepare`, which generates the types the build needs.
+      - run: npm ci
+
+      # lb-customer has no lint or prettier setup yet; the build is the only check.
+      - name: Build
+        run: npm run build

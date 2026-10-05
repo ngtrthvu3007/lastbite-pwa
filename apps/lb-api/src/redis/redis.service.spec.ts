@@ -23,13 +23,13 @@ describe('RedisService', () => {
     jest.clearAllMocks();
   });
 
-  it('does not hide a Redis failure after startup', async () => {
+  it('fails fast at startup and does not hide later Redis failures', async () => {
     const client = createRedisClient(jest.fn().mockRejectedValue(new Error('offline')));
     client.set.mockRejectedValue(new Error('offline'));
     jest.mocked(createClient).mockReturnValue(client as never);
 
     const service = new RedisService();
-    await service.onModuleInit();
+    await expect(service.onModuleInit()).rejects.toThrow('offline');
     await expect(service.set('session-key', 'value', 60)).rejects.toThrow('offline');
 
     expect(createClient).toHaveBeenCalledTimes(1);
