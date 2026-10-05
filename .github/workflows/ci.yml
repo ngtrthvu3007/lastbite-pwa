@@ -1,8 +1,8 @@
 name: CI
 
-# One workflow with no path filters on purpose: required status checks must always
-# report. A workflow skipped by `paths:` never creates its check, so the PR would
-# wait forever. Job names below are the names to mark as required in branch protection.
+# Path filtering is done with a `changes` job instead of `on.paths`. A workflow skipped
+# by `paths:` never creates its checks, so a required check would wait forever; a job
+# skipped by `if:` reports as passed. Mark lb-api, lb-merchant and lb-customer as required.
 on:
   pull_request:
     branches: [main, dev]
@@ -17,7 +17,37 @@ permissions:
   contents: read
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      lb-api: ${{ steps.filter.outputs.lb-api }}
+      lb-merchant: ${{ steps.filter.outputs.lb-merchant }}
+      lb-customer: ${{ steps.filter.outputs.lb-customer }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # Editing this workflow re-runs every app.
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            lb-api:
+              - apps/lb-api/**
+              - .github/workflows/ci.yml
+            lb-merchant:
+              - apps/lb-merchant/**
+              - .github/workflows/ci.yml
+            lb-customer:
+              - apps/lb-customer/**
+              - .github/workflows/ci.yml
+
   lb-api:
+    needs: changes
+    if: needs.changes.outputs.lb-api == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     defaults:
@@ -45,6 +75,8 @@ jobs:
         run: npm run build
 
   lb-merchant:
+    needs: changes
+    if: needs.changes.outputs.lb-merchant == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     defaults:
@@ -74,6 +106,8 @@ jobs:
         run: npm run build
 
   lb-customer:
+    needs: changes
+    if: needs.changes.outputs.lb-customer == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     defaults:
