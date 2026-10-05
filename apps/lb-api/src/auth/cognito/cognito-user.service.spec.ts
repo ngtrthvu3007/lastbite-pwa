@@ -1,4 +1,4 @@
-import { authIdentities, users } from '../db/schema';
+import { authIdentities, users } from '../../db/schema';
 import { CognitoProfile, CognitoUserService } from './cognito-user.service';
 
 const profile: CognitoProfile = {
@@ -10,9 +10,7 @@ const profile: CognitoProfile = {
 
 function createTransaction(existingUserId?: string) {
   const execute = jest.fn().mockResolvedValue(undefined);
-  const limit = jest
-    .fn()
-    .mockResolvedValue(existingUserId ? [{ userId: existingUserId }] : []);
+  const limit = jest.fn().mockResolvedValue(existingUserId ? [{ userId: existingUserId }] : []);
   const select = jest.fn().mockReturnValue({
     from: jest.fn().mockReturnValue({
       where: jest.fn().mockReturnValue({ limit }),
@@ -49,7 +47,7 @@ describe('CognitoUserService', () => {
     };
     const service = new CognitoUserService(db as never);
 
-    const userId = await service.syncUser(profile);
+    const userId = await service.syncUserService(profile);
 
     expect(transaction.execute).toHaveBeenCalledTimes(1);
     expect(transaction.insert).toHaveBeenCalledWith(users);
@@ -68,7 +66,7 @@ describe('CognitoUserService', () => {
     };
     const service = new CognitoUserService(db as never);
 
-    const userId = await service.syncUser(profile);
+    const userId = await service.syncUserService(profile);
 
     expect(transaction.insert).not.toHaveBeenCalled();
     expect(transaction.updateSet).toHaveBeenCalledWith(

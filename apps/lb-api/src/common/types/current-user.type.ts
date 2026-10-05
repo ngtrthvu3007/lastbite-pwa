@@ -12,13 +12,4 @@ export class CurrentUserDto {
 
   @ApiProperty({ nullable: true, example: 'https://example.com/avatar.jpg' })
   avatarUrl: string | null;
-
-  static from(user: CurrentUserDto): CurrentUserDto {
-    return {
-      id: user.id,
-      email: user.email,
-      displayName: user.displayName,
-      avatarUrl: user.avatarUrl,
-    };
-  }
 }

@@ -1,22 +1,22 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { and, eq, sql } from 'drizzle-orm';
-import { DB, Database } from '../db/database.module';
-import { authIdentities, users } from '../db/schema';
+import { DB, Database } from '../../db/database.module';
+import { authIdentities, users } from '../../db/schema';
 
 const IDENTITY_PROVIDER = 'cognito';
 
 export interface CognitoProfile {
   cognitoSub: string;
   email: string;
-  displayName?: string;
-  avatarUrl?: string;
+  displayName: string | null;
+  avatarUrl: string | null;
 }
 
 @Injectable()
 export class CognitoUserService {
   constructor(@Inject(DB) private readonly db: Database) {}
 
-  async syncUser(profile: CognitoProfile): Promise<string> {
+  async syncUserService(profile: CognitoProfile): Promise<string> {
     return this.db.transaction(async (tx) => {
       // Serialize first-login callbacks for the same Cognito subject. The lock is
       // transaction-scoped, so Postgres releases it on both commit and rollback.

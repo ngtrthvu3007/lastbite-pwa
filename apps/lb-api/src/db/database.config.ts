@@ -10,9 +10,7 @@ function required(env: DatabaseEnv, name: string): string {
   return value;
 }
 
-export function getDatabaseConnectionString(
-  env: DatabaseEnv = process.env,
-): string {
+export function getDatabaseConnectionString(env: DatabaseEnv = process.env): string {
   return required(env, 'DATABASE_URL');
 }
 

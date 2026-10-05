@@ -7,12 +7,23 @@ import {
 } from './auth.cookie';
 
 describe('setSessionCookie', () => {
+  const originalAppEnv = process.env.APP_ENV;
+
+  beforeEach(() => {
+    process.env.APP_ENV = 'production';
+  });
+
+  afterEach(() => {
+    if (originalAppEnv === undefined) delete process.env.APP_ENV;
+    else process.env.APP_ENV = originalAppEnv;
+  });
+
   it('uses the production cookie security settings', () => {
     const cookie = jest.fn();
     const response = { cookie } as unknown as Response;
     const expiresAt = new Date('2026-09-28T00:00:00.000Z');
 
-    setSessionCookie(response, 'opaque-token', expiresAt, 'production');
+    setSessionCookie(response, 'opaque-token', expiresAt);
 
     expect(cookie).toHaveBeenCalledWith(AUTH_COOKIE_NAME, 'opaque-token', {
       httpOnly: true,
@@ -27,7 +38,7 @@ describe('setSessionCookie', () => {
     const clearCookie = jest.fn();
     const response = { clearCookie } as unknown as Response;
 
-    clearSessionCookie(response, 'production');
+    clearSessionCookie(response);
 
     expect(clearCookie).toHaveBeenCalledWith(AUTH_COOKIE_NAME, {
       httpOnly: true,

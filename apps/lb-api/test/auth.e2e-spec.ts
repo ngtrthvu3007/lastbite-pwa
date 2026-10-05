@@ -1,37 +1,33 @@
-import { BadRequestException, INestApplication } from '@nestjs/common';
+import { BadRequestException, INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import request = require('supertest');
+import request from 'supertest';
 import { AuthController } from '../src/auth/auth.controller';
 import { AuthGuard } from '../src/auth/auth.guard';
 import { AuthService } from '../src/auth/auth.service';
-import { TEST_APP_ENV, useTestEnvironment } from '../src/test-support/test-environment';
 
 describe('AuthController (e2e)', () => {
   let app: INestApplication;
-  let restoreEnvironment: () => void;
 
   const auth = {
-    beginLogin: jest.fn(),
-    completeLogin: jest.fn(),
-    getCurrentUser: jest.fn(),
-    logout: jest.fn(),
+    beginLoginService: jest.fn(),
+    completeLoginService: jest.fn(),
+    getCurrentUserService: jest.fn(),
+    logoutService: jest.fn(),
   };
 
   beforeAll(async () => {
-    restoreEnvironment = useTestEnvironment(TEST_APP_ENV);
-
     const moduleRef = await Test.createTestingModule({
       controllers: [AuthController],
       providers: [{ provide: AuthService, useValue: auth }, AuthGuard],
     }).compile();
 
     app = moduleRef.createNestApplication();
+    app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));
     await app.init();
   });
 
   afterAll(async () => {
     await app.close();
-    restoreEnvironment();
   });
 
   beforeEach(() => {
@@ -39,7 +35,7 @@ describe('AuthController (e2e)', () => {
   });
 
   it('GET /auth/login redirects to the Cognito authorize URL', async () => {
-    auth.beginLogin.mockResolvedValue(
+    auth.beginLoginService.mockResolvedValue(
       'https://auth.example.com/oauth2/authorize?identity_provider=Google',
     );
 
@@ -47,22 +43,17 @@ describe('AuthController (e2e)', () => {
       .get('/auth/login')
       .query({
         app: 'customer',
-        provider: 'google',
         returnTo: 'http://localhost:5173/orders',
       })
       .expect(302)
       .expect('Location', 'https://auth.example.com/oauth2/authorize?identity_provider=Google');
 
-    expect(auth.beginLogin).toHaveBeenCalledWith(
-      'customer',
-      'google',
-      'http://localhost:5173/orders',
-    );
+    expect(auth.beginLoginService).toHaveBeenCalledWith('customer', 'http://localhost:5173/orders');
   });
 
   it('GET /auth/callback creates a LastBite session and redirects to the app', async () => {
     const expiresAt = new Date('2030-01-08T00:00:00.000Z');
-    auth.completeLogin.mockResolvedValue({
+    auth.completeLoginService.mockResolvedValue({
       token: 'lastbite-session-token',
       expiresAt,
       returnTo: 'http://localhost:5173/orders',
@@ -76,11 +67,15 @@ describe('AuthController (e2e)', () => {
 
     expect(response.headers['set-cookie']?.[0]).toContain('lb_session=lastbite-session-token');
     expect(response.headers['set-cookie']?.[0]).toContain('HttpOnly');
-    expect(auth.completeLogin).toHaveBeenCalledWith('authorization-code', 'oauth-state', undefined);
+    expect(auth.completeLoginService).toHaveBeenCalledWith(
+      'authorization-code',
+      'oauth-state',
+      undefined,
+    );
   });
 
   it('does not create a session when the OAuth state is invalid', async () => {
-    auth.completeLogin.mockRejectedValue(
+    auth.completeLoginService.mockRejectedValue(
       new BadRequestException('OAuth state is invalid or expired'),
     );
 
@@ -89,7 +84,7 @@ describe('AuthController (e2e)', () => {
       .query({ code: 'authorization-code', state: 'invalid-state' })
       .expect(400);
 
-    expect(auth.completeLogin).toHaveBeenCalledWith(
+    expect(auth.completeLoginService).toHaveBeenCalledWith(
       'authorization-code',
       'invalid-state',
       undefined,
@@ -97,7 +92,7 @@ describe('AuthController (e2e)', () => {
   });
 
   it('does not create a session when Cognito returns an OAuth error', async () => {
-    auth.completeLogin.mockRejectedValue(
+    auth.completeLoginService.mockRejectedValue(
       new BadRequestException('OAuth login failed: access_denied'),
     );
 
@@ -106,7 +101,20 @@ describe('AuthController (e2e)', () => {
       .query({ error: 'access_denied', state: 'oauth-state' })
       .expect(400);
 
-    expect(auth.completeLogin).toHaveBeenCalledWith(undefined, 'oauth-state', 'access_denied');
+    expect(auth.completeLoginService).toHaveBeenCalledWith(
+      undefined,
+      'oauth-state',
+      'access_denied',
+    );
+  });
+
+  it('rejects a callback that has neither code nor error', async () => {
+    await request(app.getHttpServer())
+      .get('/auth/callback')
+      .query({ state: 'oauth-state' })
+      .expect(400);
+
+    expect(auth.completeLoginService).not.toHaveBeenCalled();
   });
 
   it('GET /auth/me returns the authenticated user from the session cookie', async () => {
@@ -115,9 +123,8 @@ describe('AuthController (e2e)', () => {
       email: 'customer@example.com',
       displayName: 'Customer',
       avatarUrl: null,
-      sessionId: 'internal-session-id',
     };
-    auth.getCurrentUser.mockResolvedValue(user);
+    auth.getCurrentUserService.mockResolvedValue(user);
 
     await request(app.getHttpServer())
       .get('/auth/me')
@@ -130,11 +137,11 @@ describe('AuthController (e2e)', () => {
         avatarUrl: null,
       });
 
-    expect(auth.getCurrentUser).toHaveBeenCalledWith('opaque-token');
+    expect(auth.getCurrentUserService).toHaveBeenCalledWith('opaque-token');
   });
 
   it('GET /auth/me rejects an expired or revoked session', async () => {
-    auth.getCurrentUser.mockResolvedValue(null);
+    auth.getCurrentUserService.mockResolvedValue(null);
 
     await request(app.getHttpServer())
       .get('/auth/me')
@@ -148,6 +155,6 @@ describe('AuthController (e2e)', () => {
       .set('Cookie', 'lb_session=opaque-token')
       .expect(204);
 
-    expect(auth.logout).toHaveBeenCalledWith('opaque-token');
+    expect(auth.logoutService).toHaveBeenCalledWith('opaque-token');
   });
 });
