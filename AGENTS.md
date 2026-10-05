@@ -73,6 +73,24 @@ Planned stack:
   finishing.
 - Do not suppress lint, type, build, or test failures without explaining why.
 
+## Method Naming Conventions
+
+Public methods:
+
+- Name public methods of services, controllers, guards, DTOs, and similar layers as
+  `<action><Layer>` in camelCase, where the suffix is the layer name. Examples:
+  `loginController`, `beginLoginService`.
+- Repositories use the short suffix `Repo`, for example `findUserRepo`.
+- The suffix makes the layer visible at the call site, which keeps flows easy to
+  trace.
+
+Private methods:
+
+- Always mark them with the `private` keyword and name them in camelCase.
+- Keep the name short, for example `begin` or `validateReturnTo`. Do not add a layer
+  suffix; the `private` keyword already scopes them.
+- Place private methods at the top of the class block, not at the bottom.
+
 ## Frontend Rules
 
 - `apps/lb-customer` uses Nuxt SSR/PWA. Apply Nuxt conventions there.
