@@ -71,6 +71,30 @@ jobs:
       - name: Prettier
         run: npx prettier --check "src/**/*.ts" "test/**/*.ts"
 
+      # Tests load .env.test.local. Every external client is mocked, so these are
+      # placeholder values, not real services or secrets.
+      - name: Create test env
+        run: |
+          cat > .env.test.local <<'EOF'
+          DATABASE_URL=postgresql://test:test@localhost:5432/test
+          REDIS_URL=redis://localhost:6379
+          AUTH_REFRESH_TOKEN_KEY=AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=
+          APP_ENV=test
+          COGNITO_USER_POOL_ID=us-east-1_testpool
+          COGNITO_CLIENT_ID=test-client-id
+          COGNITO_CLIENT_SECRET=test-client-secret
+          COGNITO_DOMAIN=https://auth.example.test
+          COGNITO_REDIRECT_URI=http://localhost:3000/auth/callback
+          CUSTOMER_APP_URL=http://customer.test
+          MERCHANT_APP_URL=http://merchant.test
+          EOF
+
+      - name: Unit tests
+        run: npm test -- --ci
+
+      - name: E2E tests
+        run: npm run test:e2e
+
       - name: Build
         run: npm run build
 
@@ -101,6 +125,9 @@ jobs:
       - name: Prettier
         run: npx prettier --check src/
 
+      - name: Unit tests
+        run: npm run test:unit -- --run
+
       # Runs type-check and the production build.
       - name: Build
         run: npm run build
@@ -125,6 +152,6 @@ jobs:
       # postinstall runs `nuxt prepare`, which generates the types the build needs.
       - run: npm ci
 
-      # lb-customer has no lint or prettier setup yet; the build is the only check.
+      # lb-customer has no lint, prettier or test setup yet; the build is the only check.
       - name: Build
         run: npm run build

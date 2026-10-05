@@ -311,3 +311,9 @@ npm run build
 ```
 
 If dependencies change, run `npm install` in the changed app so `package-lock.json` is updated, then restart the Docker target.
+
+## Contributing
+
+- `main` and `dev` are protected: branch off `dev`, open a pull request, and get one approval.
+- CI runs lint, prettier, tests, and build for each app that changed; the checks must pass before merging.
+- CI details and the PR workflow: [docs/ci.md](docs/ci.md).
