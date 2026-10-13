@@ -53,7 +53,6 @@ Các giá trị bí mật:
 
 - Google OAuth Client Secret.
 - Cognito app client secret.
-- Cognito refresh token.
 - Khóa hoặc pepper dùng cho LastBite session.
 
 Quy tắc:
@@ -83,6 +82,9 @@ MERCHANT_APP_URL=http://localhost:5174
 ## 4. Cài đặt Cognito
 
 Các lệnh dưới đây dùng PowerShell và AWS CLI v2.
+
+> Cognito hiện do Terraform quản lý (`infra/cognito/`, xem `docs/terraform.md`). Mục 4 là bản CLI
+> tương đương để tham khảo. Không chạy lại trên pool hiện có và không sửa tay trên console.
 
 ### 4.1 Tạo User Pool
 
@@ -273,7 +275,6 @@ Authentication không quyết định quyền merchant. Resolver/service vẫn p
 
 ### Logout
 
-- Revoke Cognito refresh token nếu backend đang lưu token này.
 - Đánh dấu LastBite session đã revoke trong Postgres.
 - Xóa Redis session cache.
 - Xóa cookie bằng đúng path/domain cũ.
@@ -318,8 +319,7 @@ Khi token Cognito hợp lệ:
 - Chỉ lưu digest trong Postgres và Redis.
 - Postgres là nguồn dữ liệu chính.
 - Redis chỉ dùng cho lookup/cache và TTL.
-- Refresh token Cognito phải được mã hóa khi lưu lâu dài.
-- Không lưu refresh token plaintext trong Redis.
+- Không lưu Cognito refresh token ở backend trong MVP (chưa có luồng refresh); ID token chỉ dùng để xác thực lúc callback.
 
 Cookie đề xuất:
 

@@ -1,8 +1,7 @@
 # Terraform
 
-Kế hoạch dùng Terraform cho LastBite, bám theo tiến độ code. Đây là tài liệu quyết định
-và quy trình, chưa phải hướng dẫn từng dòng HCL; tên thuộc tính cụ thể xem tài liệu của
-AWS provider khi viết.
+Terraform cho LastBite, bám theo tiến độ code. Đây là tài liệu quyết định và quy trình;
+cấu hình Cognito nằm trong `infra/cognito/`.
 
 ## Phạm vi hiện tại
 
@@ -25,7 +24,7 @@ AWS provider khi viết.
 
 ## Chuẩn bị
 
-- Terraform bản mới (từ 1.10 trở lên để dùng khoá state ngay trong S3).
+- Terraform bản mới (từ 1.11 trở lên để dùng khoá state ngay trong S3).
 - AWS CLI profile `lastbite-dev`, kiểm tra bằng `aws sts get-caller-identity --profile lastbite-dev`.
   - Dùng IAM user riêng có MFA, không dùng root.
 - AWS Budget cảnh báo (ví dụ 10 USD) trước khi tạo bất kỳ resource nào.
@@ -72,9 +71,10 @@ Mỗi resource thay cho một lệnh trong mục 4 của `docs/features/authenti
 
 - State chứa client secret của Cognito và secret của Google.
   - Hệ quả: state không bao giờ được commit, và không để lỏng lẻo lâu.
-- Giai đoạn đầu để state ở máy (đã `.gitignore`), để học vòng `init`, `plan`, `apply`.
-- Chuyển state lên S3 trước khi dùng chung hay đưa vào CI: bucket riêng, bật mã hoá, versioning và khoá state.
-  - Bucket state tạo ngoài cấu hình chính (vấn đề con gà và quả trứng), ghi lại cách tạo trong tài liệu này khi làm.
+- State của Cognito nằm trên S3 `lastbite-tfstate-ap-sa-v1` với key
+  `cognito/terraform.tfstate`; bucket này được tạo bởi `infra/bootstrap/`.
+- S3 backend dùng versioning, chặn public access và file lock (`use_lockfile`).
+  - Bucket state phải tồn tại trước `terraform init` của Cognito (vấn đề con gà và quả trứng).
 
 ## Import pool đang chạy
 
@@ -82,12 +82,20 @@ User pool hiện tại (`ap-southeast-1_NTh5BNsuB`) được tạo bằng CLI. �
 
 - Lý do: không đổi ID nào trong `.env`, không gián đoạn đăng nhập, và học được `terraform import`.
 
-Quy trình:
+Chạy trong `infra/cognito/`, với `$env:AWS_PROFILE = "lastbite-dev"` và các biến
+`TF_VAR_google_client_id` / `TF_VAR_google_client_secret` đã đặt trong session hiện tại:
 
-1. Viết code mô tả đúng cấu hình đang chạy.
-2. `terraform import` từng resource: user pool, domain, identity provider Google, app client.
-3. `terraform plan`, rồi chỉnh code cho tới khi báo "No changes".
-4. Chỉ `apply` khi `plan` không còn khác biệt mà bạn chưa hiểu.
+```powershell
+terraform init
+terraform import aws_cognito_user_pool.main ap-southeast-1_NTh5BNsuB
+terraform import aws_cognito_user_pool_domain.main lastbite-auth-294787
+terraform import aws_cognito_identity_provider.google ap-southeast-1_NTh5BNsuB:Google
+terraform import aws_cognito_user_pool_client.backend ap-southeast-1_NTh5BNsuB/1b33vuogfdig1er3opcail7uba
+terraform plan
+```
+
+Sau import, chỉnh code cho tới khi `plan` báo "No changes". Chỉ `apply` khi plan không còn
+khác biệt mà bạn chưa hiểu.
 
 Cẩn thận khi đọc `plan`:
 
@@ -99,8 +107,7 @@ Cẩn thận khi đọc `plan`:
 ## Thứ tự công việc
 
 1. Chuẩn bị máy và tài khoản (mục Chuẩn bị).
-2. Viết cấu hình Cognito, state ở máy.
+2. Chạy `terraform init` trong `infra/cognito/` để dùng S3 backend.
 3. Import, rồi `plan` cho tới khi sạch.
 4. Điền đầu ra vào `.env`, chạy lại đăng nhập để kiểm chứng.
-5. Chuyển state lên S3.
-6. Sau đó mới tới các thứ trong "Chưa làm" theo tiến độ code, rồi CI chạy `fmt`, `validate`, `plan` trên PR.
+5. Sau đó mới tới các thứ trong "Chưa làm" theo tiến độ code, rồi CI chạy `fmt`, `validate`, `plan` trên PR.

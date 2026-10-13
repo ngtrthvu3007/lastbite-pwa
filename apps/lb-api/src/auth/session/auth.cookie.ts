@@ -1,11 +1,11 @@
 import { CookieOptions, Response } from 'express';
-
-export const AUTH_COOKIE_NAME = 'lb_session';
+import { isProduction } from '../../common';
+import { AUTH_COOKIE_NAME } from '../auth.constants';
 
 function getSessionCookieOptions(): CookieOptions {
   return {
     httpOnly: true,
-    secure: process.env.APP_ENV === 'production',
+    secure: isProduction(),
     sameSite: 'lax',
     path: '/',
   };

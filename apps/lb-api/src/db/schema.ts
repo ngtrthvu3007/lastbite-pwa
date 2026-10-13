@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { check, index, pgTable, text, timestamp, unique, uuid, varchar } from 'drizzle-orm/pg-core';
+import { check, index, pgTable, timestamp, unique, uuid, varchar } from 'drizzle-orm/pg-core';
 
 export const users = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -35,7 +35,6 @@ export const authSessions = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
     tokenHash: varchar('token_hash', { length: 64 }).notNull().unique(),
-    cognitoRefreshTokenEncrypted: text('cognito_refresh_token_encrypted').notNull(),
     expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
     revokedAt: timestamp('revoked_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
@@ -49,6 +48,7 @@ export const authSessions = pgTable(
     ),
     check(
       'auth_sessions_max_seven_days_check',
+      // Keep in sync with SESSION_TTL_DAYS in auth-session.service.ts.
       sql`${table.expiresAt} <= ${table.createdAt} + interval '7 days'`,
     ),
   ],

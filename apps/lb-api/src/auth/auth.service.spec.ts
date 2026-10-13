@@ -7,7 +7,6 @@ const STATE = 'state';
 const NONCE = 'expected-nonce';
 const OAUTH_ERROR = 'access_denied';
 const SESSION_TOKEN = 'opaque-token';
-const REFRESH_TOKEN = 'refresh-token';
 const USER_ID = 'user-id';
 const EXPIRES_AT = new Date('2030-01-08T00:00:00.000Z');
 const PROFILE = {
@@ -20,19 +19,19 @@ const PROFILE = {
 describe('AuthService.completeLoginService', () => {
   let oauthTransactions: { consumeTransactionService: jest.Mock };
   let cognitoOAuth: { exchangeCodeService: jest.Mock };
-  let cognitoUsers: { syncUserService: jest.Mock };
+  let users: { syncUserService: jest.Mock };
   let authSessions: { createSessionService: jest.Mock };
   let service: AuthService;
 
   beforeEach(() => {
     oauthTransactions = { consumeTransactionService: jest.fn() };
     cognitoOAuth = { exchangeCodeService: jest.fn() };
-    cognitoUsers = { syncUserService: jest.fn() };
+    users = { syncUserService: jest.fn() };
     authSessions = { createSessionService: jest.fn() };
     service = new AuthService(
       oauthTransactions as never,
       cognitoOAuth as never,
-      cognitoUsers as never,
+      users as never,
       authSessions as never,
     );
     oauthTransactions.consumeTransactionService.mockResolvedValue({
@@ -42,11 +41,8 @@ describe('AuthService.completeLoginService', () => {
   });
 
   it('turns a successful OAuth callback into a LastBite session', async () => {
-    cognitoOAuth.exchangeCodeService.mockResolvedValue({
-      profile: PROFILE,
-      refreshToken: REFRESH_TOKEN,
-    });
-    cognitoUsers.syncUserService.mockResolvedValue(USER_ID);
+    cognitoOAuth.exchangeCodeService.mockResolvedValue(PROFILE);
+    users.syncUserService.mockResolvedValue(USER_ID);
     authSessions.createSessionService.mockResolvedValue({
       token: SESSION_TOKEN,
       expiresAt: EXPIRES_AT,
@@ -60,8 +56,8 @@ describe('AuthService.completeLoginService', () => {
 
     expect(oauthTransactions.consumeTransactionService).toHaveBeenCalledWith(STATE);
     expect(cognitoOAuth.exchangeCodeService).toHaveBeenCalledWith(CODE, NONCE);
-    expect(cognitoUsers.syncUserService).toHaveBeenCalledWith(PROFILE);
-    expect(authSessions.createSessionService).toHaveBeenCalledWith(USER_ID, REFRESH_TOKEN);
+    expect(users.syncUserService).toHaveBeenCalledWith(PROFILE);
+    expect(authSessions.createSessionService).toHaveBeenCalledWith(USER_ID);
   });
 
   it('consumes the state and fails without exchanging a token when Cognito reports an error', async () => {

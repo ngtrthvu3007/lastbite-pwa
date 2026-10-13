@@ -7,7 +7,7 @@ Hạ tầng AWS của LastBite, quản lý bằng Terraform.
 | Thư mục | Nội dung | State |
 |---|---|---|
 | `bootstrap/` | Bucket S3 chứa state cho các thư mục còn lại | Lưu ở máy người đã chạy |
-| `cognito/` | Cognito user pool, domain, Google IdP, app client | (chưa làm) S3 |
+| `cognito/` | Cognito user pool, domain, Google IdP, app client | S3 |
 
 Mỗi thư mục là một root module độc lập: `cd` vào rồi chạy lệnh trong đó.
 
@@ -20,9 +20,9 @@ Mỗi thư mục là một root module độc lập: `cd` vào rồi chạy lệ
    aws configure --profile lastbite-dev   # region: ap-southeast-1
    aws sts get-caller-identity --profile lastbite-dev
    ```
-4. Mỗi terminal mới, trước khi chạy Terraform:
+4. Mỗi PowerShell mới, trước khi chạy Terraform:
    ```bash
-   export AWS_PROFILE=lastbite-dev
+   $env:AWS_PROFILE = "lastbite-dev"
    ```
 
 ### Quyền của `lastbite-terraform`
@@ -63,6 +63,30 @@ Chạy **một lần cho cả dự án**, đã chạy rồi. Bucket hiện tại
 - State của `bootstrap/` đang nằm ở máy người đã apply. Không xoá file `terraform.tfstate` trong thư mục này.
 - Người khác không cần chạy `bootstrap/`, chỉ cần dùng bucket làm backend.
 
+## Cognito
+
+`cognito/` quản lý User Pool đã tồn tại, không tạo pool mới. Trước khi import,
+đặt Google OAuth values trong session hiện tại, không tạo `tfvars`:
+
+```powershell
+$env:TF_VAR_google_client_id = Read-Host "Google Client ID"
+$GoogleClientSecret = Read-Host "Google Client Secret" -AsSecureString
+$env:TF_VAR_google_client_secret = [System.Net.NetworkCredential]::new("", $GoogleClientSecret).Password
+```
+
+Sau đó, trong `infra/cognito/`, chạy lần lượt:
+
+```powershell
+terraform init
+terraform import aws_cognito_user_pool.main ap-southeast-1_NTh5BNsuB
+terraform import aws_cognito_user_pool_domain.main lastbite-auth-294787
+terraform import aws_cognito_identity_provider.google ap-southeast-1_NTh5BNsuB:Google
+terraform import aws_cognito_user_pool_client.backend ap-southeast-1_NTh5BNsuB/1b33vuogfdig1er3opcail7uba
+terraform plan
+```
+
+Chỉ `apply` sau khi `terraform plan` không có thay đổi ngoài dự kiến.
+
 ## Quy tắc
 
 - Resource do Terraform quản lý thì không sửa tay trên console, sửa trong code rồi `apply`.
@@ -74,6 +98,6 @@ Chạy **một lần cho cả dự án**, đã chạy rồi. Bucket hiện tại
 
 | Lỗi | Nguyên nhân | Cách sửa |
 |---|---|---|
-| `No valid credential sources found` | Chưa `export AWS_PROFILE` trong terminal này | `export AWS_PROFILE=lastbite-dev` |
+| `No valid credential sources found` | Chưa đặt `AWS_PROFILE` trong PowerShell này | `$env:AWS_PROFILE = "lastbite-dev"` |
 | `SignatureDoesNotMatch` | Secret key sai hoặc thiếu | Nhập lại: `aws configure set aws_secret_access_key '<SECRET>' --profile lastbite-dev` |
 | `AccessDenied` khi `apply` | User thiếu quyền cho resource đó | Nhờ admin cấp quyền trong CloudShell |

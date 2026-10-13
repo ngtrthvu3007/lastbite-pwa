@@ -6,6 +6,7 @@ import { ConfigModule } from '@nestjs/config';
 import { DatabaseModule } from './db/database.module';
 import { AuthModule } from './auth/auth.module';
 import { HealthResolver } from './health/health.resolver';
+import { isProduction } from './common';
 
 @Module({
   imports: [
@@ -15,7 +16,7 @@ import { HealthResolver } from './health/health.resolver';
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       autoSchemaFile: true,
-      playground: process.env.APP_ENV !== 'production',
+      playground: !isProduction(),
     }),
   ],
   controllers: [AppController],

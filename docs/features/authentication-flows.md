@@ -14,14 +14,14 @@ Mô tả flow theo code hiện tại để debug. Cấu hình AWS/Cognito và se
 
 Vị trí code:
 
-- `oauth/`: bắt đầu và kết thúc "giao dịch đăng nhập" (state, nonce, returnTo).
-- `cognito/`: nói chuyện với Cognito và đồng bộ user.
+- `oauth/`: giao dịch đăng nhập (`oauth-transaction.service`: state, nonce, returnTo) và nói chuyện với Cognito (`cognito-oauth.service`: đổi code lấy ID token, verify).
+- `user.service.ts`: tạo hoặc cập nhật user và identity trong Postgres.
 - `session/`: session LastBite và cookie.
 - `auth.service.ts`: `completeLoginService` điều phối các bước của callback.
 - `auth.controller.ts`: bốn endpoint `login`, `callback`, `me`, `logout`.
 - `auth.guard.ts`: đọc cookie, gắn user vào request.
 - `auth.config.ts`: đọc biến môi trường, báo lỗi ngay lúc khởi động nếu thiếu.
-- `auth.crypto.ts`: token ngẫu nhiên, sha256, mã hoá refresh token.
+- `auth.crypto.ts`: token ngẫu nhiên và sha256.
 - `dto/`: validate query của `login` và `callback`.
 - `common/` (ngoài `auth/`): thứ dùng chung nhiều module, không phụ thuộc ngược vào `auth/`.
   - `decorators/current-user.decorator.ts`: `@CurrentUser()`.
@@ -98,9 +98,9 @@ Chạy qua:
 - `AuthService.completeLoginService(code, state, oauthError)` (`auth.service.ts`): điều phối, gọi lần lượt:
   - `OAuthTransactionService.consumeTransactionService` (`oauth/`): gọi `RedisService.getDel`, trả `{ nonce, returnTo }`.
   - Có `oauthError`: ném `BadRequestException` ngay tại đây, không đi tiếp.
-  - `CognitoOAuthService.exchangeCodeService` (`cognito/cognito-oauth.service.ts`): gọi `requestTokens` (`fetch` tới Cognito) rồi `verifier.verify`, sau đó kiểm tra `nonce`, `email_verified`.
-  - `CognitoUserService.syncUserService` (`cognito/cognito-user.service.ts`): transaction tạo hoặc cập nhật user.
-  - `AuthSessionService.createSessionService` (`session/auth-session.service.ts`): gọi `randomToken`, `sha256`, `encryptRefreshToken` (`auth.crypto.ts`), rồi insert `auth_sessions`.
+  - `CognitoOAuthService.exchangeCodeService` (`oauth/cognito-oauth.service.ts`): gọi `requestIdToken` (`fetch` tới Cognito) rồi `verifier.verify`, sau đó kiểm tra `nonce`, `email_verified`.
+  - `UserService.syncUserService` (`user.service.ts`): transaction tạo hoặc cập nhật user.
+  - `AuthSessionService.createSessionService` (`session/auth-session.service.ts`): gọi `randomToken`, `sha256` (`auth.crypto.ts`), rồi insert `auth_sessions`.
 - Quay lại `AuthController.callbackController`: `setSessionCookie` (`session/auth.cookie.ts`), rồi `response.redirect(returnTo)`.
 
 - `consumeTransactionService` dùng `GETDEL`: đọc xong là xoá.
@@ -122,8 +122,9 @@ Chạy qua:
   - Lý do: `sub` không đổi, còn email có thể đổi.
 - `auth_identities` tách khỏi `users`.
   - Lý do: một tài khoản dùng được cả customer và merchant app.
-- `createSessionService` lưu hash của token, và refresh token Cognito đã mã hoá.
-  - Lý do: lộ DB cũng không dùng lại được cookie, và không đọc được refresh token.
+- `createSessionService` chỉ lưu hash của token session.
+  - Lý do: lộ DB cũng không dùng lại được cookie.
+  - Không lưu refresh token của Cognito vì chưa có luồng refresh; thêm lại khi cần.
 - Session sống 7 ngày, cookie `HttpOnly`, `SameSite=Lax`, `Secure` khi production.
   - Lý do: JS không đọc được cookie; `Lax` hạn chế CSRF.
 

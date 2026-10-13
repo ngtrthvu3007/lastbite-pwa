@@ -4,11 +4,11 @@ import { RedisModule } from '../redis/redis.module';
 import { AuthController } from './auth.controller';
 import { AuthGuard } from './auth.guard';
 import { AuthService } from './auth.service';
-import { CognitoOAuthService } from './cognito/cognito-oauth.service';
-import { CognitoUserService } from './cognito/cognito-user.service';
+import { CognitoOAuthService } from './oauth/cognito-oauth.service';
 import { AUTH_CONFIG, createAuthConfig } from './auth.config';
 import { OAuthTransactionService } from './oauth/oauth-transaction.service';
 import { AuthSessionService } from './session/auth-session.service';
+import { UserService } from './user.service';
 
 @Module({
   controllers: [AuthController],
@@ -17,7 +17,7 @@ import { AuthSessionService } from './session/auth-session.service';
     { provide: AUTH_CONFIG, useFactory: createAuthConfig },
     OAuthTransactionService,
     CognitoOAuthService,
-    CognitoUserService,
+    UserService,
     AuthSessionService,
     AuthGuard,
     AuthService,
