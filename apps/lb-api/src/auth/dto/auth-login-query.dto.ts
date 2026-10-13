@@ -1,8 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsIn, IsOptional, IsString } from 'class-validator';
-
-export type AuthApp = 'customer' | 'merchant';
-export const AUTH_APPS: AuthApp[] = ['customer', 'merchant'];
+import { AUTH_APPS, AuthApp } from '../auth.config';
 
 export class AuthLoginQueryDto {
   @ApiProperty({ enum: AUTH_APPS, description: 'The app to return to after a successful login.' })

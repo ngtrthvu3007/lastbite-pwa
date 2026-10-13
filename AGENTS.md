@@ -91,6 +91,15 @@ Private methods:
   suffix; the `private` keyword already scopes them.
 - Place private methods at the top of the class block, not at the bottom.
 
+Helper functions:
+
+- Applies to private methods, module-level helpers, and shared utilities.
+- Name them in camelCase and start with a verb that says what they do, for example
+  `toSlug`, `buildStateKey`, `makeVerifier`, `validateReturnTo`, `isProduction`,
+  `setSessionCookie`. Do not use a bare noun such as `stateKey`.
+- Prefer these verbs: `to` (convert), `build`/`make`/`create` (construct), `validate`
+  (throw on invalid), `is`/`has` (boolean), `get`/`find` (read), `set` (write).
+
 ## Frontend Rules
 
 - `apps/lb-customer` uses Nuxt SSR/PWA. Apply Nuxt conventions there.

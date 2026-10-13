@@ -122,7 +122,6 @@ Required API variables:
 | --- | --- |
 | `DATABASE_URL` | Postgres connection string used by the API and Drizzle. |
 | `REDIS_URL` | Redis connection string for OAuth state/session cache. |
-| `AUTH_REFRESH_TOKEN_KEY` | Base64 encoded 32-byte key for encrypting Cognito refresh tokens. |
 | `COGNITO_USER_POOL_ID` | Cognito User Pool ID. |
 | `COGNITO_CLIENT_ID` | Backend app client ID. |
 | `COGNITO_CLIENT_SECRET` | Backend app client secret. Keep this server-side only. |
@@ -131,14 +130,7 @@ Required API variables:
 | `CUSTOMER_APP_URL` | Allowed customer app origin/return URL base. |
 | `MERCHANT_APP_URL` | Allowed merchant app origin/return URL base. |
 
-Generate a local refresh-token encryption key:
-
-```powershell
-node -e "console.log(require('node:crypto').randomBytes(32).toString('base64'))"
-```
-
-Put the printed value in `AUTH_REFRESH_TOKEN_KEY`. Do not commit `.env` files or
-paste secrets into issue comments.
+Do not commit `.env` files or paste secrets into issue comments.
 
 ## AWS CLI And Profile Setup
 
@@ -195,18 +187,15 @@ Google Auth Platform setup:
 4. Use scopes `openid`, `email`, and `profile`.
 5. Copy the Google client ID and secret into Cognito as the `Google` identity provider.
 
-Cognito setup:
+Cognito (User Pool, domain, `Google` identity provider, and the confidential
+backend app client) is managed by Terraform in `infra/cognito/`. Do not create or
+edit it by hand in the console. Change it in code and `plan`/`apply` (see
+`docs/terraform-guide.md`). Copy the User Pool ID, app client ID, app client
+secret, and Hosted UI domain into `apps/lb-api/.env` with
+`terraform output` (add `-raw COGNITO_CLIENT_SECRET` for the secret).
 
-1. Create a User Pool with Google as the only MVP identity provider.
-2. Create a confidential backend app client with a client secret.
-3. Enable authorization code flow only.
-4. Allow scopes `openid`, `email`, and `profile`.
-5. Register `http://localhost:3000/auth/callback` as a callback URL.
-6. Register customer and merchant local URLs as logout URLs.
-7. Copy the User Pool ID, app client ID, app client secret, and Hosted UI domain
-   into `apps/lb-api/.env`.
-
-The detailed auth design lives in `docs/features/authentication.md`.
+The detailed auth design lives in `docs/features/authentication.md`, and the
+step-by-step setup in `docs/features/cognito-google-setup.md`.
 
 ## Database, Migrations, And Supabase
 
@@ -264,6 +253,10 @@ npm run db:studio
 
 Use `db:push` only for throwaway local experiments. For project changes, commit
 the generated migration instead.
+
+Drizzle has no "down" migrations. To undo a change, write a new migration. The
+`db:revert` script (`drizzle-kit drop`) only deletes a generated migration file,
+it does not roll back a database. More detail, in Vietnamese: `docs/database.md`.
 
 ## Manual App Setup
 

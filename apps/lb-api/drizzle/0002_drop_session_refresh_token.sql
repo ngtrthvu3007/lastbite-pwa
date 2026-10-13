@@ -1,0 +1,1 @@
+ALTER TABLE "auth_sessions" DROP COLUMN "cognito_refresh_token_encrypted";

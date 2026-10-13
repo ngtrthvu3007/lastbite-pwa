@@ -77,8 +77,7 @@ jobs:
         run: |
           cat > .env.test.local <<'EOF'
           DATABASE_URL=postgresql://test:test@localhost:5432/test
-          REDIS_URL=redis://localhost:6379
-          AUTH_REFRESH_TOKEN_KEY=AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQE=
+          REDIS_URL=redis://localhost:63790
           APP_ENV=test
           COGNITO_USER_POOL_ID=us-east-1_testpool
           COGNITO_CLIENT_ID=test-client-id

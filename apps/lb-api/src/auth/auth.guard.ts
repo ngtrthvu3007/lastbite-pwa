@@ -1,7 +1,7 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { getSessionToken } from './session/auth.cookie';
 import { AuthService } from './auth.service';
-import type { AuthenticatedRequest } from '../common';
+import { AUTHENTICATION_REQUIRED_MESSAGE, type AuthenticatedRequest } from '../common';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -12,7 +12,7 @@ export class AuthGuard implements CanActivate {
     const token = getSessionToken(request.headers.cookie);
     const user = token ? await this.auth.getCurrentUserService(token) : null;
 
-    if (!user) throw new UnauthorizedException('Authentication is required');
+    if (!user) throw new UnauthorizedException(AUTHENTICATION_REQUIRED_MESSAGE);
 
     request.currentUser = user;
     return true;

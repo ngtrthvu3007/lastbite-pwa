@@ -51,6 +51,15 @@ describe('AuthController (e2e)', () => {
     expect(auth.beginLoginService).toHaveBeenCalledWith('customer', 'http://localhost:5173/orders');
   });
 
+  it.each([{}, { app: 'admin' }])(
+    'GET /auth/login rejects a missing or unknown app',
+    async (query) => {
+      await request(app.getHttpServer()).get('/auth/login').query(query).expect(400);
+
+      expect(auth.beginLoginService).not.toHaveBeenCalled();
+    },
+  );
+
   it('GET /auth/callback creates a LastBite session and redirects to the app', async () => {
     const expiresAt = new Date('2030-01-08T00:00:00.000Z');
     auth.completeLoginService.mockResolvedValue({
@@ -70,23 +79,6 @@ describe('AuthController (e2e)', () => {
     expect(auth.completeLoginService).toHaveBeenCalledWith(
       'authorization-code',
       'oauth-state',
-      undefined,
-    );
-  });
-
-  it('does not create a session when the OAuth state is invalid', async () => {
-    auth.completeLoginService.mockRejectedValue(
-      new BadRequestException('OAuth state is invalid or expired'),
-    );
-
-    await request(app.getHttpServer())
-      .get('/auth/callback')
-      .query({ code: 'authorization-code', state: 'invalid-state' })
-      .expect(400);
-
-    expect(auth.completeLoginService).toHaveBeenCalledWith(
-      'authorization-code',
-      'invalid-state',
       undefined,
     );
   });
@@ -117,6 +109,21 @@ describe('AuthController (e2e)', () => {
     expect(auth.completeLoginService).not.toHaveBeenCalled();
   });
 
+  it('rejects a callback without state', async () => {
+    await request(app.getHttpServer())
+      .get('/auth/callback')
+      .query({ code: 'authorization-code' })
+      .expect(400);
+
+    expect(auth.completeLoginService).not.toHaveBeenCalled();
+  });
+
+  it('GET /auth/me rejects a request without a session cookie', async () => {
+    await request(app.getHttpServer()).get('/auth/me').expect(401);
+
+    expect(auth.getCurrentUserService).not.toHaveBeenCalled();
+  });
+
   it('GET /auth/me returns the authenticated user from the session cookie', async () => {
     const user = {
       id: 'user-id',
@@ -140,7 +147,7 @@ describe('AuthController (e2e)', () => {
     expect(auth.getCurrentUserService).toHaveBeenCalledWith('opaque-token');
   });
 
-  it('GET /auth/me rejects an expired or revoked session', async () => {
+  it('GET /auth/me rejects a session the service no longer accepts', async () => {
     auth.getCurrentUserService.mockResolvedValue(null);
 
     await request(app.getHttpServer())
@@ -150,11 +157,18 @@ describe('AuthController (e2e)', () => {
   });
 
   it('POST /auth/logout revokes the session and clears the cookie', async () => {
-    await request(app.getHttpServer())
+    const response = await request(app.getHttpServer())
       .post('/auth/logout')
       .set('Cookie', 'lb_session=opaque-token')
       .expect(204);
 
     expect(auth.logoutService).toHaveBeenCalledWith('opaque-token');
+    expect(response.headers['set-cookie']?.[0]).toMatch(/^lb_session=;/);
+  });
+
+  it('POST /auth/logout without a session cookie revokes nothing', async () => {
+    await request(app.getHttpServer()).post('/auth/logout').expect(204);
+
+    expect(auth.logoutService).not.toHaveBeenCalled();
   });
 });

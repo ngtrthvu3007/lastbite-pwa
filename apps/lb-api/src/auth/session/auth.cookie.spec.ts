@@ -1,12 +1,8 @@
 import { Response } from 'express';
-import {
-  AUTH_COOKIE_NAME,
-  clearSessionCookie,
-  getSessionToken,
-  setSessionCookie,
-} from './auth.cookie';
+import { clearSessionCookie, getSessionToken, setSessionCookie } from './auth.cookie';
+import { AUTH_COOKIE_NAME } from '../auth.constants';
 
-describe('setSessionCookie', () => {
+describe('session cookie', () => {
   const originalAppEnv = process.env.APP_ENV;
 
   beforeEach(() => {
@@ -34,6 +30,19 @@ describe('setSessionCookie', () => {
     });
   });
 
+  it('allows the cookie over plain HTTP outside production', () => {
+    process.env.APP_ENV = 'development';
+    const cookie = jest.fn();
+
+    setSessionCookie({ cookie } as unknown as Response, 'opaque-token', new Date());
+
+    expect(cookie).toHaveBeenCalledWith(
+      AUTH_COOKIE_NAME,
+      'opaque-token',
+      expect.objectContaining({ httpOnly: true, secure: false }),
+    );
+  });
+
   it('clears the session cookie with the same security options', () => {
     const clearCookie = jest.fn();
     const response = { clearCookie } as unknown as Response;
@@ -50,5 +59,9 @@ describe('setSessionCookie', () => {
 
   it('reads only the LastBite session token from a Cookie header', () => {
     expect(getSessionToken('theme=light; lb_session=opaque-token')).toBe('opaque-token');
+  });
+
+  it.each([undefined, 'theme=light'])('returns nothing when the header is %p', (header) => {
+    expect(getSessionToken(header)).toBeUndefined();
   });
 });

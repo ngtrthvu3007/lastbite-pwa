@@ -1,10 +1,10 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { AuthSessionService, CreatedSession } from './session/auth-session.service';
-import { CognitoOAuthService } from './cognito/cognito-oauth.service';
-import { CognitoUserService } from './cognito/cognito-user.service';
-import { AuthApp } from './dto/auth-login-query.dto';
+import { CognitoOAuthService } from './oauth/cognito-oauth.service';
+import { AuthApp } from './auth.config';
 import { CurrentUserDto } from '../common';
 import { OAuthTransactionService } from './oauth/oauth-transaction.service';
+import { UserService } from './user.service';
 
 interface CompletedLogin extends CreatedSession {
   returnTo: string;
@@ -15,11 +15,11 @@ export class AuthService {
   constructor(
     private readonly oauthTransactions: OAuthTransactionService,
     private readonly cognitoOAuth: CognitoOAuthService,
-    private readonly cognitoUsers: CognitoUserService,
+    private readonly users: UserService,
     private readonly authSessions: AuthSessionService,
   ) {}
 
-  async beginLoginService(app: AuthApp, returnTo = '') {
+  async beginLoginService(app: AuthApp, returnTo?: string) {
     return this.oauthTransactions.beginTransactionService(app, returnTo);
   }
 
@@ -34,9 +34,9 @@ export class AuthService {
       throw new BadRequestException(`OAuth login failed: ${oauthError}`);
     }
 
-    const login = await this.cognitoOAuth.exchangeCodeService(code, transaction.nonce);
-    const userId = await this.cognitoUsers.syncUserService(login.profile);
-    const session = await this.authSessions.createSessionService(userId, login.refreshToken);
+    const profile = await this.cognitoOAuth.exchangeCodeService(code, transaction.nonce);
+    const userId = await this.users.syncUserService(profile);
+    const session = await this.authSessions.createSessionService(userId);
 
     return { ...session, returnTo: transaction.returnTo };
   }

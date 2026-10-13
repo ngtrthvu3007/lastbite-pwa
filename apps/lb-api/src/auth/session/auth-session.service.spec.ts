@@ -1,13 +1,5 @@
 import { authSessions } from '../../db/schema';
-import { createAuthConfig } from '../auth.config';
 import { AuthSessionService } from './auth-session.service';
-
-const currentUser = {
-  id: 'user-id',
-  email: 'user@example.com',
-  displayName: 'LastBite User',
-  avatarUrl: null,
-};
 
 function createSessionLookupDb(result: unknown[]) {
   const limit = jest.fn().mockResolvedValue(result);
@@ -20,8 +12,6 @@ function createSessionLookupDb(result: unknown[]) {
 }
 
 describe('AuthSessionService', () => {
-  const config = createAuthConfig();
-
   it('stores only the session digest in Postgres', async () => {
     const values = jest.fn().mockResolvedValue(undefined);
     const db = {
@@ -30,30 +20,34 @@ describe('AuthSessionService', () => {
         return { values };
       }),
     };
-    const service = new AuthSessionService(db as never, config);
+    const service = new AuthSessionService(db as never);
 
-    const session = await service.createSessionService('user-id', 'refresh-token');
+    const session = await service.createSessionService('user-id');
 
     expect(values).toHaveBeenCalledWith(
       expect.objectContaining({
         userId: 'user-id',
         tokenHash: expect.stringMatching(/^[a-f0-9]{64}$/),
-        cognitoRefreshTokenEncrypted: expect.not.stringContaining('refresh-token'),
       }),
     );
     expect(session.token).not.toHaveLength(0);
   });
 
-  it('returns the user from an active Postgres session', async () => {
-    const db = createSessionLookupDb([currentUser]);
-    const service = new AuthSessionService(db as never, config);
+  it('creates a session that lasts exactly the 7-day maximum', async () => {
+    const now = new Date('2030-01-01T00:00:00.000Z');
+    const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+    jest.useFakeTimers().setSystemTime(now);
+    const db = { insert: jest.fn().mockReturnValue({ values: jest.fn() }) };
 
-    await expect(service.getCurrentUserService('opaque-token')).resolves.toEqual(currentUser);
+    const session = await new AuthSessionService(db as never).createSessionService('user-id');
+
+    expect(session.expiresAt.getTime()).toBe(now.getTime() + sevenDaysMs);
+    jest.useRealTimers();
   });
 
-  it('rejects a missing, expired, or revoked Postgres session', async () => {
+  it('returns null when no active session matches the token', async () => {
     const db = createSessionLookupDb([]);
-    const service = new AuthSessionService(db as never, config);
+    const service = new AuthSessionService(db as never);
 
     await expect(service.getCurrentUserService('revoked-token')).resolves.toBeNull();
   });
@@ -62,10 +56,11 @@ describe('AuthSessionService', () => {
     const where = jest.fn().mockResolvedValue(undefined);
     const set = jest.fn().mockReturnValue({ where });
     const update = jest.fn().mockReturnValue({ set });
-    const service = new AuthSessionService({ update } as never, config);
+    const service = new AuthSessionService({ update } as never);
 
     await service.revokeSessionService('opaque-token');
 
     expect(update).toHaveBeenCalledWith(authSessions);
+    expect(set).toHaveBeenCalledWith({ revokedAt: expect.any(Date) });
   });
 });

@@ -1,7 +1,7 @@
-import { authIdentities, users } from '../../db/schema';
-import { CognitoProfile, CognitoUserService } from './cognito-user.service';
+import { authIdentities, users } from '../db/schema';
+import { UserProfile, UserService } from './user.service';
 
-const profile: CognitoProfile = {
+const profile: UserProfile = {
   cognitoSub: 'cognito-sub',
   email: 'user@example.com',
   displayName: 'LastBite User',
@@ -39,13 +39,13 @@ function createTransaction(existingUserId?: string) {
   };
 }
 
-describe('CognitoUserService', () => {
+describe('UserService', () => {
   it('creates a user and identity on first login', async () => {
     const transaction = createTransaction();
     const db = {
       transaction: jest.fn((callback) => callback(transaction.tx)),
     };
-    const service = new CognitoUserService(db as never);
+    const service = new UserService(db as never);
 
     const userId = await service.syncUserService(profile);
 
@@ -64,7 +64,7 @@ describe('CognitoUserService', () => {
     const db = {
       transaction: jest.fn((callback) => callback(transaction.tx)),
     };
-    const service = new CognitoUserService(db as never);
+    const service = new UserService(db as never);
 
     const userId = await service.syncUserService(profile);
 

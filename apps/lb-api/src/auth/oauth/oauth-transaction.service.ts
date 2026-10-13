@@ -1,8 +1,8 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { RedisService } from '../../redis/redis.service';
-import { AUTH_CONFIG, AuthConfig } from '../auth.config';
-import { AuthApp } from '../dto/auth-login-query.dto';
-import { randomToken, sha256 } from '../auth.crypto';
+import { AUTH_CONFIG, AuthApp, AuthConfig } from '../auth.config';
+import { createRandomToken, toSha256 } from '../auth.crypto';
+import { COGNITO_AUTHORIZE_PATH, COGNITO_GOOGLE_PROVIDER, COGNITO_SCOPES } from '../auth.constants';
 
 const OAUTH_TRANSACTION_TTL_SECONDS = 10 * 60;
 const OAUTH_STATE_PREFIX = 'auth:oauth:';
@@ -20,6 +20,10 @@ export class OAuthTransactionService {
     private readonly config: AuthConfig,
   ) {}
 
+  private buildStateKey(state: string) {
+    return `${OAUTH_STATE_PREFIX}${toSha256(state)}`;
+  }
+
   private validateReturnTo(app: AuthApp, returnToValue: string): string {
     const appUrl = new URL(this.config.apps[app]);
     // Resolving against appUrl also accepts a relative path like "/orders".
@@ -28,34 +32,33 @@ export class OAuthTransactionService {
     const isSameOrigin = returnTo.origin === appUrl.origin;
     const hasCredentials = Boolean(returnTo.username || returnTo.password);
 
-    if (!isSameOrigin || hasCredentials) {
+    if (!isSameOrigin || hasCredentials)
       throw new BadRequestException('returnTo is not allowed for this app');
-    }
 
     return returnTo.toString();
   }
 
   async beginTransactionService(app: AuthApp, returnToValue = ''): Promise<string> {
     const returnTo = this.validateReturnTo(app, returnToValue);
-    const state = randomToken();
-    const nonce = randomToken();
+    const state = createRandomToken();
+    const nonce = createRandomToken();
 
     // Only the digest is used as the Redis key, so a Redis dump cannot reveal
     // a state value that is still usable by the callback endpoint.
     await this.redis.set(
-      stateKey(state),
+      this.buildStateKey(state),
       JSON.stringify({ nonce, returnTo } satisfies OAuthTransaction),
       OAUTH_TRANSACTION_TTL_SECONDS,
     );
 
-    const authorizeUrl = new URL('/oauth2/authorize', this.config.cognito.domain);
+    const authorizeUrl = new URL(COGNITO_AUTHORIZE_PATH, this.config.cognito.domain);
     authorizeUrl.search = new URLSearchParams({
       client_id: this.config.cognito.clientId,
-      identity_provider: 'Google',
+      identity_provider: COGNITO_GOOGLE_PROVIDER,
       nonce,
       redirect_uri: this.config.cognito.redirectUri,
       response_type: 'code',
-      scope: 'openid email profile',
+      scope: COGNITO_SCOPES,
       state,
     }).toString();
 
@@ -64,13 +67,9 @@ export class OAuthTransactionService {
 
   async consumeTransactionService(state: string): Promise<OAuthTransaction> {
     // GETDEL makes validation and invalidation atomic, preventing replay.
-    const raw = await this.redis.getDel(stateKey(state));
+    const raw = await this.redis.getDel(this.buildStateKey(state));
     if (!raw) throw new BadRequestException('OAuth state is invalid or expired');
 
     return JSON.parse(raw);
   }
-}
-
-function stateKey(state: string): string {
-  return `${OAUTH_STATE_PREFIX}${sha256(state)}`;
 }

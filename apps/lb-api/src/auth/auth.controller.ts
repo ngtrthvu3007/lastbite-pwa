@@ -10,12 +10,8 @@ import {
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import type { Response } from 'express';
-import {
-  AUTH_COOKIE_NAME,
-  clearSessionCookie,
-  getSessionToken,
-  setSessionCookie,
-} from './session/auth.cookie';
+import { clearSessionCookie, getSessionToken, setSessionCookie } from './session/auth.cookie';
+import { AUTH_COOKIE_NAME } from './auth.constants';
 import { CurrentUser, CurrentUserDto } from '../common';
 import { AuthGuard } from './auth.guard';
 import { AuthService } from './auth.service';
@@ -77,7 +73,9 @@ export class AuthController {
     @Res({ passthrough: true }) response: Response,
   ) {
     const token = getSessionToken(cookie);
+
     if (token) await this.authService.logoutService(token);
+
     clearSessionCookie(response);
   }
 }

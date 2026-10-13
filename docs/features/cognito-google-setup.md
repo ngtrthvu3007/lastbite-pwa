@@ -4,6 +4,11 @@ Hướng dẫn từng bước để dựng đăng nhập Google qua Cognito cho 
 Thiết kế và contract kỹ thuật xem `docs/features/authentication.md`. File này chỉ lo phần
 "làm thế nào để cấu hình".
 
+> **Cognito đã được Terraform quản lý** (`infra/cognito/`). Các bước 2, 3, 5, 6 bên dưới mô tả
+> cách làm trên console để hiểu từng phần, **không làm lại trên pool hiện có** và không sửa tay
+> những thứ Terraform đang quản lý. Muốn đổi cấu hình: sửa code trong `infra/cognito/` rồi
+> `plan`/`apply` (xem `docs/terraform-guide.md`). Giá trị điền vào `.env`: xem mục 1.1.
+
 ## 0. Tổng quan luồng
 
 - Trình duyệt vào `GET /auth/login` của `lb-api`.
@@ -35,6 +40,10 @@ Thứ tự làm bên dưới bám theo phụ thuộc:
 Tất cả biến Cognito chỉ ghi vào **một nơi**: file `apps/lb-api/.env` (app `lb-api`, thư mục
 `apps/lb-api/` của repo này). File này đã được Git ignore.
 
+Lấy nhanh bốn giá trị đầu từ Terraform: trong `infra/cognito/` chạy `terraform output`
+(secret: `terraform output -raw COGNITO_CLIENT_SECRET`). `COGNITO_REDIRECT_URI` là biến
+`callback_url` của Terraform; hai URL app trùng `logout_urls`.
+
 | Giá trị | Lấy ở bước | Biến môi trường | File / repo |
 | --- | --- | --- | --- |
 | User pool ID | 2 | `COGNITO_USER_POOL_ID` | `apps/lb-api/.env` |
@@ -44,7 +53,6 @@ Tất cả biến Cognito chỉ ghi vào **một nơi**: file `apps/lb-api/.env`
 | Callback URL | 6 | `COGNITO_REDIRECT_URI` | `apps/lb-api/.env` |
 | URL customer app | 1 | `CUSTOMER_APP_URL` | `apps/lb-api/.env` |
 | URL merchant app | 1 | `MERCHANT_APP_URL` | `apps/lb-api/.env` |
-| Khoá mã hoá refresh token | 7 | `AUTH_REFRESH_TOKEN_KEY` | `apps/lb-api/.env` |
 
 - **Google Client ID và Client secret (bước 4) không ghi vào biến môi trường nào.**
   - Chỉ dán vào Cognito console (bước 5). Backend không đọc hai giá trị này.
@@ -165,11 +173,6 @@ Lưu ý:
   - `REDIS_URL`: Redis local, docker compose map ra cổng `63790` nên dùng `redis://localhost:63790`.
   - `DATABASE_URL`: Postgres local.
   - `APP_ENV`: `development` khi chạy local (cookie `Secure` chỉ bật khi `production`).
-  - `AUTH_REFRESH_TOKEN_KEY`: khoá 32 byte, mã hoá base64.
-    - Tạo bằng PowerShell:
-      `[Convert]::ToBase64String((1..32 | ForEach-Object { Get-Random -Maximum 256 }) -as [byte[]])`
-    - Hoặc bằng Node: `node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"`.
-    - Mất khoá này thì không giải mã được refresh token đã lưu.
 - Với test, `apps/lb-api/.env.test.local` cần đủ cùng bộ biến (dùng giá trị test, không dùng secret thật).
   - Biến nào để trống thì suite test tương ứng sẽ fail với lỗi `... is required`.
 
@@ -224,4 +227,3 @@ Lưu ý:
 - Secret bị lộ thì rotate ngay:
   - Google client secret: tạo secret mới trong Google, cập nhật Identity Provider trong Cognito.
   - Cognito app client secret: tạo secret mới, cập nhật `COGNITO_CLIENT_SECRET`.
-  - `AUTH_REFRESH_TOKEN_KEY`: đổi khoá sẽ làm các session cũ không refresh được.

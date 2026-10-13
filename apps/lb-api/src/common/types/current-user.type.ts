@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import type { Request } from 'express';
 
 export class CurrentUserDto {
   @ApiProperty({ format: 'uuid' })
@@ -12,4 +13,8 @@ export class CurrentUserDto {
 
   @ApiProperty({ nullable: true, example: 'https://example.com/avatar.jpg' })
   avatarUrl: string | null;
+}
+
+export interface AuthenticatedRequest extends Request {
+  currentUser?: CurrentUserDto;
 }
