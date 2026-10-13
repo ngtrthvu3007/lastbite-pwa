@@ -1,0 +1,5 @@
+# Terraform: state and tfvars hold secrets, never commit them
+*.tfstate*
+.terraform/
+*.tfvars
+.envrc
