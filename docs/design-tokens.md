@@ -32,22 +32,24 @@ Từ khóa thị giác:
 
 | Token | Hex | Vai trò |
 | --- | --- | --- |
-| `color.brand.primary` | `#2F8F5B` | Màu brand chính, CTA phụ, header accents, trạng thái fresh/success |
-| `color.brand.primaryHover` | `#247247` | Hover/pressed của primary green |
-| `color.brand.primaryActive` | `#1D5C39` | Active/pressed mạnh hơn |
-| `color.brand.primarySoft` | `#E6F4EC` | Nền nhẹ cho badge, empty state, success surface |
-| `color.brand.primarySubtle` | `#F3FAF6` | Nền rất nhẹ cho section hoặc app shell |
-| `color.brand.accent` | `#F2B84B` | Deal, countdown, highlight, price drop |
+| `color.brand.primary` | `#2E7D32` | Màu brand chính, CTA chính, icon ✓, trạng thái fresh/success |
+| `color.brand.primaryHover` | `#25692A` | Hover/pressed của primary green |
+| `color.brand.primaryActive` | `#1B5E20` | Active/pressed mạnh hơn |
+| `color.brand.primarySoft` | `#E3F1E1` | Nền nhẹ cho empty state, success surface |
+| `color.brand.primarySubtle` | `#F3FAF4` | Nền rất nhẹ cho section hoặc app shell |
+| `color.brand.accent` | `#F7B23B` | Badge giảm giá, highlight, price drop |
 | `color.brand.accentHover` | `#D99A22` | Hover/pressed của yellow accent |
-| `color.brand.accentSoft` | `#FFF3D6` | Nền badge giảm giá, time-limited notice |
-| `color.brand.accentText` | `#5F3B00` | Text trên nền vàng nhạt |
+| `color.brand.accentSoft` | `#FFF0D6` | Nền banner giữ giá, chip "Tiết kiệm" |
+| `color.brand.accentText` | `#7A4A00` | Text trên nền vàng nhạt |
+
+Chỉ dùng **3 màu thương hiệu**: xanh lá (hành động, thành công), vàng (deal, thời gian), cà chua (sắp hết, lỗi, hủy). Không thêm cam, xanh dương hay hồng. Viền chip deal dùng chính `color.brand.accent`.
 
 ### 2.2 Neutral
 
 | Token | Hex | Vai trò |
 | --- | --- | --- |
 | `color.neutral.0` | `#FFFFFF` | Surface chính |
-| `color.neutral.50` | `#FFFCF7` | App canvas warm white |
+| `color.neutral.50` | `#FFFAF2` | App canvas warm cream |
 | `color.neutral.100` | `#F7F4EF` | Section subtle, input background |
 | `color.neutral.200` | `#EEE9E1` | Divider nhẹ |
 | `color.neutral.300` | `#E1DBD1` | Border default |
@@ -62,14 +64,12 @@ Từ khóa thị giác:
 
 | Token | Hex | Vai trò |
 | --- | --- | --- |
-| `color.status.success` | `#2F8F5B` | Thành công, completed, fresh |
-| `color.status.successSoft` | `#E6F4EC` | Nền success |
-| `color.status.warning` | `#F2B84B` | Cảnh báo nhẹ, countdown |
-| `color.status.warningSoft` | `#FFF3D6` | Nền warning |
-| `color.status.danger` | `#D94A38` | Lỗi, hủy, deal rất gấp |
+| `color.status.success` | `#2E7D32` | Thành công, completed, fresh |
+| `color.status.successSoft` | `#E3F1E1` | Nền success |
+| `color.status.warning` | `#F7B23B` | Cảnh báo nhẹ, countdown |
+| `color.status.warningSoft` | `#FFF0D6` | Nền warning |
+| `color.status.danger` | `#C43A28` | Lỗi, hủy, sắp hết (chữ trắng trên nền này khoảng 5.3:1) |
 | `color.status.dangerSoft` | `#FFE8E3` | Nền danger |
-| `color.status.info` | `#2D7DD2` | Link phụ, map, thông tin |
-| `color.status.infoSoft` | `#E7F1FC` | Nền info |
 
 ### 2.4 App Surfaces
 
@@ -92,7 +92,7 @@ Từ khóa thị giác:
 | `color.text.muted` | `color.neutral.600` | Metadata |
 | `color.text.placeholder` | `color.neutral.500` | Placeholder |
 | `color.text.inverse` | `#FFFFFF` | Text trên nền đậm |
-| `color.text.link` | `color.status.info` | Link |
+| `color.text.link` | `color.brand.primaryActive` | Link, nhấn chữ xanh đậm |
 
 ## 3. Action Tokens
 
@@ -116,8 +116,12 @@ Từ khóa thị giác:
 | --- | --- | --- |
 | `color.deal.price` | `color.brand.primaryActive` | Giá hiện tại |
 | `color.deal.originalPrice` | `color.neutral.500` | Giá cũ/gạch ngang |
-| `color.deal.discountBg` | `color.brand.accentSoft` | Badge giảm giá |
-| `color.deal.discountText` | `color.brand.accentText` | Text badge giảm giá |
+| `color.deal.discountBg` | `color.brand.accent` | Badge giảm giá (nền vàng đặc) |
+| `color.deal.discountText` | `color.action.accent.text` | Text badge giảm giá |
+| `color.deal.stockBar` | `#6BAE70` | Thanh số phần còn lại (còn nhiều), xanh lá sáng |
+| `color.deal.stockBarLow` | `#A52E1E` | Thanh số phần khi còn ≤ 30%, cà chua đậm |
+| `color.deal.holdBannerBg` | `color.brand.accentSoft` | Banner "Giữ giá đến…" |
+| `color.deal.holdBannerText` | `color.brand.accentText` | Text banner giữ giá |
 | `color.deal.lowStockBg` | `color.status.dangerSoft` | Badge sắp hết |
 | `color.deal.lowStockText` | `color.status.danger` | Text sắp hết |
 | `color.reservation.active` | `color.brand.primary` | Đang giữ chỗ |
@@ -182,17 +186,70 @@ Gợi ý sử dụng:
 | Token | Value | Dùng cho |
 | --- | ---: | --- |
 | `radius.none` | 0 | Map/canvas edge |
-| `radius.xs` | 4 | Badge nhỏ |
-| `radius.sm` | 6 | Input, compact chip |
-| `radius.md` | 8 | Card, button, image |
-| `radius.lg` | 12 | Bottom sheet, modal |
-| `radius.full` | 999 | Pill, avatar, marker |
+| `radius.sm` | 8 | Ảnh nhỏ, banner, badge giảm giá |
+| `radius.md` | 12 | Button, input, card |
+| `radius.lg` | 20 | Bottom sheet (chỉ hai góc trên) |
+| `radius.full` | 999 | Chip, pill, avatar, marker |
 
 Nguyên tắc:
 
-- Card mặc định dùng `radius.md`.
+- Button, input và card cùng `radius.md` để cảm giác đồng nhất, dễ nhận ra vùng chạm.
 - Không lạm dụng bo góc quá lớn để tránh cảm giác toy app.
-- Ảnh món ăn nên dùng `radius.md` để sạch và rõ.
+
+### Border
+
+| Token | Value | Dùng cho |
+| --- | --- | --- |
+| `border.default` | `1px solid color.neutral.300` | Card, thanh dưới |
+| `border.control` | `1px solid color.neutral.400` | Input, chip chưa chọn, nút Google |
+| `border.selected` | `2px solid color.brand.primary` | Focus, nút secondary, mã lấy hàng |
+| `border.error` | `2px solid color.status.danger` | Input lỗi, nút hủy |
+| `border.upload` | `2px dashed color.neutral.400` | Vùng tải ảnh |
+
+Không dùng đổ bóng cho card. Chỉ bottom sheet và nút nổi trên bản đồ có shadow.
+
+### Kích thước chạm
+
+| Vùng | Chiều cao tối thiểu | Lý do |
+| --- | ---: | --- |
+| Nút chính và input phía merchant | 56 | Tiểu thương thao tác một tay, tay ướt, ít bước |
+| Nút giữ chỗ phía customer | 52 | CTA chính, bấm nhanh khi tranh phần cuối |
+| Icon, ô tìm kiếm | 48 | |
+| Chip, tab, liên kết | 44 | |
+| Bottom nav | 64 | 3–4 mục, vừa tầm ngón cái |
+
+Khoảng cách tối thiểu giữa hai vùng chạm là 8. Cỡ chữ nhỏ nhất là 14.
+
+### Header (3 loại)
+
+| Loại | Dùng cho | Quy tắc |
+| --- | --- | --- |
+| Tab (màn cấp 1) | Đã giữ, Tài khoản, Món hôm nay, Đơn giữ chỗ | Nền `neutral.50`, không viền, tiêu đề 22/30 đậm, tối đa một nút phụ bên phải. Khám phá là biến thể có logo và vị trí |
+| Con (màn cấp 2) | Hồ sơ cửa hàng, Đăng món, Sửa món, Chi tiết món (cửa hàng) | Cao 56, nền trắng, viền dưới `border.default`, nút quay lại 48×48, tiêu đề 18 đậm |
+| Phủ | Bản đồ, Chi tiết món (người mua) | Nổi trên nội dung: ô tìm kiếm nổi hoặc nút quay lại 48×48 trên ảnh |
+
+### Nhãn nút và ngôn ngữ
+
+- Nhãn nút bắt đầu bằng động từ, tối đa 3 từ hoặc 16 ký tự, không xuống dòng.
+- Nút có padding ngang ít nhất 16 và rộng ít nhất 96.
+- Chip lọc nhanh: tối đa 3 chip, mỗi chip dưới 10 ký tự, thấy hết không cần vuốt. Lọc thêm nằm trong Bộ lọc.
+- Nhãn thanh điều hướng tối đa 8 ký tự.
+- Mỗi thứ một tên: "món" là thứ được bán (không dùng "deal", "bài", "post" trên giao diện), "giữ chỗ" là thao tác của khách, "ngừng bán" là thao tác đóng sớm của cửa hàng.
+
+| Thay vì | Dùng |
+| --- | --- |
+| Giữ 1 phần · 25.000đ | Giữ chỗ · 25.000đ |
+| Đóng bài sớm | Ngừng bán sớm |
+| Lấy trong 30 phút | Lấy ngay |
+| Xóa lọc | Đặt lại |
+
+### Không dựa vào màu một mình
+
+Xanh và cà chua có độ sáng gần nhau, nên người mù màu đỏ-xanh khó phân biệt. Mọi trạng thái "sắp hết" phải có thêm ít nhất một tín hiệu khác ngoài màu:
+
+- Chữ nói rõ ("Sắp hết · còn 3 phần").
+- Icon cảnh báo đi kèm chip và dòng số phần.
+- Thanh số phần dùng hai sắc độ khác hẳn nhau (`#6BAE70` sáng, `#A52E1E` đậm).
 
 ## 8. Shadow Tokens
 
@@ -202,7 +259,7 @@ Nguyên tắc:
 | `shadow.card` | `0 1px 3px rgba(31, 41, 51, 0.10)` | Post card |
 | `shadow.popover` | `0 8px 20px rgba(31, 41, 51, 0.12)` | Menu, popover |
 | `shadow.sheet` | `0 12px 32px rgba(31, 41, 51, 0.16)` | Bottom sheet |
-| `shadow.focus` | `0 0 0 3px rgba(47, 143, 91, 0.22)` | Focus ring |
+| `shadow.focus` | `0 0 0 3px rgba(46, 125, 50, 0.22)` | Focus ring |
 
 ## 9. Component Token Mapping
 
@@ -233,7 +290,7 @@ Nguyên tắc:
 | Element | Token |
 | --- | --- |
 | Background | `color.brand.accentSoft` |
-| Text | `color.brand.accentText` |
+| Text | `color.text.primary` |
 | Border | `color.brand.accent` |
 | Font | `font.caption` |
 | Radius | `radius.full` |
@@ -280,11 +337,25 @@ Tên biến nên giữ dạng slash khi đưa vào Figma:
 - `space/4`
 - `radius/md`
 
-## 11. Accessibility Notes
+## 11. Brand Mark
 
-- CTA xanh `#2F8F5B` dùng text trắng ổn cho button chính.
-- CTA vàng `#F2B84B` nên dùng text tối `#3A2A05`, không dùng text trắng.
-- Badge vàng nhạt nên dùng text nâu đậm `#5F3B00`.
+Logo chính đã chốt là **takeaway food box**: hình hộp xanh lá, vết cắn ở góc phải và lá vàng nhấn. Nhận diện này gắn trực tiếp với món ăn sẵn sàng nhận, giá trị food-rescue và tính địa phương của LastBite.
+
+| Asset | Dùng cho | Ghi chú |
+| --- | --- | --- |
+| [`docs/assets/lastbite-logo-mark.svg`](assets/lastbite-logo-mark.svg) | Logo chính, app icon, Figma | Vector phẳng, nền trong suốt; dùng ưu tiên |
+| [`docs/assets/lastbite-logo-mark-v3-takeaway.png`](assets/lastbite-logo-mark-v3-takeaway.png) | Bản tham chiếu raster | Không dùng thay SVG trong UI production |
+
+- Chỉ dùng `color.brand.primary` (`#2E7D32`), `color.brand.accent` (`#F7B23B`) và trắng trong mark.
+- Giữ khoảng đệm xung quanh mark ít nhất bằng 25% chiều rộng logo; không bóp méo, đổ bóng hoặc đổi màu bite/leaf.
+- Gradient nhẹ chỉ dùng trong mark chính: green `#3B9146 → #1B5E20` và gold `#F7B23B → #EE8A2B`; không dùng gradient ở icon UI, button hoặc badge.
+- Với nền primary đậm, dùng bản trắng một màu riêng; không đảo màu trực tiếp bản màu.
+
+## 12. Accessibility Notes
+
+- CTA xanh `#2E7D32` dùng text trắng cho button chính (tương phản khoảng 5.2:1, tính tay).
+- Nền vàng `#F7B23B` (badge giảm giá) dùng text tối `#3A2A05`, không dùng text trắng.
+- Banner vàng nhạt `#FFF0D6` dùng text nâu đậm `#7A4A00`.
 - Không dùng xanh lá nhạt làm text trên nền trắng.
 - Focus ring dùng green alpha để rõ nhưng không neon.
 

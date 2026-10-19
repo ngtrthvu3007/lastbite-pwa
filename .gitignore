@@ -3,3 +3,6 @@
 .terraform/
 *.tfvars
 .envrc
+
+# Claude Code personal settings
+.claude/settings.local.json
