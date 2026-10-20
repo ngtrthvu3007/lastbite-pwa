@@ -2,7 +2,7 @@ name: CI
 
 # Path filtering is done with a `changes` job instead of `on.paths`. A workflow skipped
 # by `paths:` never creates its checks, so a required check would wait forever; a job
-# skipped by `if:` reports as passed. Mark lb-api, lb-merchant and lb-customer as required.
+# skipped by `if:` reports as passed. Mark lb-api and lb-web as required.
 on:
   pull_request:
     branches: [main, dev]
@@ -25,8 +25,7 @@ jobs:
       pull-requests: read
     outputs:
       lb-api: ${{ steps.filter.outputs.lb-api }}
-      lb-merchant: ${{ steps.filter.outputs.lb-merchant }}
-      lb-customer: ${{ steps.filter.outputs.lb-customer }}
+      lb-web: ${{ steps.filter.outputs.lb-web }}
     steps:
       - uses: actions/checkout@v4
 
@@ -38,11 +37,8 @@ jobs:
             lb-api:
               - apps/lb-api/**
               - .github/workflows/ci.yml
-            lb-merchant:
-              - apps/lb-merchant/**
-              - .github/workflows/ci.yml
-            lb-customer:
-              - apps/lb-customer/**
+            lb-web:
+              - apps/lb-web/**
               - .github/workflows/ci.yml
 
   lb-api:
@@ -84,8 +80,7 @@ jobs:
           COGNITO_CLIENT_SECRET=test-client-secret
           COGNITO_DOMAIN=https://auth.example.test
           COGNITO_REDIRECT_URI=http://localhost:3000/auth/callback
-          CUSTOMER_APP_URL=http://customer.test
-          MERCHANT_APP_URL=http://merchant.test
+          APP_URL=http://web.test
           EOF
 
       - name: Unit tests
@@ -97,14 +92,14 @@ jobs:
       - name: Build
         run: npm run build
 
-  lb-merchant:
+  lb-web:
     needs: changes
-    if: needs.changes.outputs.lb-merchant == 'true'
+    if: needs.changes.outputs.lb-web == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     defaults:
       run:
-        working-directory: apps/lb-merchant
+        working-directory: apps/lb-web
     steps:
       - uses: actions/checkout@v4
 
@@ -112,45 +107,11 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: apps/lb-merchant/package-lock.json
-
-      - run: npm ci
-
-      - name: Lint
-        run: |
-          npx oxlint .
-          npx eslint .
-
-      - name: Prettier
-        run: npx prettier --check src/
-
-      - name: Unit tests
-        run: npm run test:unit -- --run
-
-      # Runs type-check and the production build.
-      - name: Build
-        run: npm run build
-
-  lb-customer:
-    needs: changes
-    if: needs.changes.outputs.lb-customer == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    defaults:
-      run:
-        working-directory: apps/lb-customer
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: apps/lb-customer/package-lock.json
+          cache-dependency-path: apps/lb-web/package-lock.json
 
       # postinstall runs `nuxt prepare`, which generates the types the build needs.
       - run: npm ci
 
-      # lb-customer has no lint, prettier or test setup yet; the build is the only check.
+      # lb-web has no lint, prettier or test setup yet; the build is the only check.
       - name: Build
         run: npm run build

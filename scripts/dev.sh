@@ -5,13 +5,13 @@ target="${1:-all}"
 detached=""
 
 case "$target" in
-  infra|api|customer|merchant|frontend|all) ;;
+  infra|api|web|all) ;;
   -d|--detach|--detached)
     target="all"
     detached="-d"
     ;;
   *)
-    echo "Usage: $0 [infra|api|customer|merchant|frontend|all] [-d|--detach]" >&2
+    echo "Usage: $0 [infra|api|web|all] [-d|--detach]" >&2
     exit 1
     ;;
 esac
@@ -33,10 +33,8 @@ fi
 case "$target" in
   infra) services="postgres redis rabbitmq minio" ;;
   api) services="postgres redis rabbitmq minio lb-api" ;;
-  customer) services="lb-customer" ;;
-  merchant) services="lb-merchant" ;;
-  frontend) services="lb-customer lb-merchant" ;;
-  all) services="postgres redis rabbitmq minio lb-api lb-customer lb-merchant" ;;
+  web) services="lb-web" ;;
+  all) services="postgres redis rabbitmq minio lb-api lb-web" ;;
 esac
 
 echo "Starting LastBite local dev target '$target': $services"

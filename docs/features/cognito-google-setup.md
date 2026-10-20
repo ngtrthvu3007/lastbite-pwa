@@ -32,8 +32,7 @@ Thứ tự làm bên dưới bám theo phụ thuộc:
 - Tài khoản Google để tạo OAuth client (nên là tài khoản của dự án).
 - Port local:
   - `lb-api`: `3000`.
-  - `lb-customer`: `5173`.
-  - `lb-merchant`: `5174`.
+  - `lb-web`: `5173`.
 
 ## 1.1 Bảng: giá trị nào ghi vào đâu
 
@@ -42,7 +41,7 @@ Tất cả biến Cognito chỉ ghi vào **một nơi**: file `apps/lb-api/.env`
 
 Lấy nhanh bốn giá trị đầu từ Terraform: trong `infra/cognito/` chạy `terraform output`
 (secret: `terraform output -raw COGNITO_CLIENT_SECRET`). `COGNITO_REDIRECT_URI` là biến
-`callback_url` của Terraform; hai URL app trùng `logout_urls`.
+`callback_url` của Terraform; `APP_URL` trùng URL duy nhất trong `logout_urls`.
 
 | Giá trị | Lấy ở bước | Biến môi trường | File / repo |
 | --- | --- | --- | --- |
@@ -51,12 +50,11 @@ Lấy nhanh bốn giá trị đầu từ Terraform: trong `infra/cognito/` chạ
 | App client ID | 6 | `COGNITO_CLIENT_ID` | `apps/lb-api/.env` |
 | App client secret | 6 | `COGNITO_CLIENT_SECRET` | `apps/lb-api/.env` |
 | Callback URL | 6 | `COGNITO_REDIRECT_URI` | `apps/lb-api/.env` |
-| URL customer app | 1 | `CUSTOMER_APP_URL` | `apps/lb-api/.env` |
-| URL merchant app | 1 | `MERCHANT_APP_URL` | `apps/lb-api/.env` |
+| URL web app | 1 | `APP_URL` | `apps/lb-api/.env` |
 
 - **Google Client ID và Client secret (bước 4) không ghi vào biến môi trường nào.**
   - Chỉ dán vào Cognito console (bước 5). Backend không đọc hai giá trị này.
-- **`apps/lb-customer` và `apps/lb-merchant` không cần biến Cognito nào.**
+- **`apps/lb-web` không cần biến Cognito nào.**
   - Không đặt secret vào đó, nhất là biến có prefix `NUXT_PUBLIC_` hoặc `VITE_` (lộ ra trình duyệt).
 - Chạy test: cùng bộ biến cần có trong `apps/lb-api/.env.test.local` (file này cũng bị Git ignore).
   - Dùng giá trị test, không dùng secret thật.
@@ -148,7 +146,7 @@ Lưu ý:
 - Hosted UI settings:
   - Identity providers: chỉ chọn **Google** (bỏ Cognito user pool).
   - **Allowed callback URLs**: `http://localhost:3000/auth/callback`.
-  - **Allowed sign-out URLs**: `http://localhost:5173` và `http://localhost:5174`.
+  - **Allowed sign-out URLs**: `http://localhost:5173`.
   - OAuth grant type: **Authorization code grant** (không bật Implicit).
   - OpenID Connect scopes: `openid`, `email`, `profile`.
 - Tạo xong, ghi lại:
@@ -168,8 +166,7 @@ Lưu ý:
   - `COGNITO_CLIENT_ID`, `COGNITO_CLIENT_SECRET`: từ bước 6.
   - `COGNITO_REDIRECT_URI`: `http://localhost:3000/auth/callback`.
     - Phải trùng từng ký tự với **Allowed callback URLs** ở bước 6.
-  - `CUSTOMER_APP_URL`: `http://localhost:5173`.
-  - `MERCHANT_APP_URL`: `http://localhost:5174`.
+  - `APP_URL`: `http://localhost:5173`.
   - `REDIS_URL`: Redis local, docker compose map ra cổng `63790` nên dùng `redis://localhost:63790`.
   - `DATABASE_URL`: Postgres local.
   - `APP_ENV`: `development` khi chạy local (cookie `Secure` chỉ bật khi `production`).
@@ -182,7 +179,7 @@ Lưu ý:
 - Chạy migration: `npm run db:migrate` trong `apps/lb-api`.
 - Chạy API: `npm run start:dev`.
 - Kiểm tra từng bước trên trình duyệt:
-  - Mở `http://localhost:3000/auth/login?app=customer`.
+  - Mở `http://localhost:3000/auth/login`.
   - Trình duyệt phải sang trang chọn tài khoản Google.
   - Chọn tài khoản trong danh sách Test users.
   - Sau khi đồng ý, trình duyệt quay về `http://localhost:5173`.
@@ -208,18 +205,18 @@ Lưu ý:
   - `COGNITO_USER_POOL_ID` hoặc `COGNITO_CLIENT_ID` không khớp token.
   - Email chưa verify (`email_verified` khác `true`).
   - Nonce không khớp, thường do mở callback từ một lần login cũ.
-- `returnTo is not allowed for this app` (400):
-  - `returnTo` khác origin với `CUSTOMER_APP_URL` hoặc `MERCHANT_APP_URL`.
+- `returnTo is not allowed` (400):
+  - `returnTo` khác origin với `APP_URL`.
 - App khởi động báo `COGNITO_... is required`:
   - Biến env còn trống hoặc sai tên, xem lại mục 7.
 - Cookie không được gửi từ frontend:
   - Frontend phải gọi với `credentials: 'include'`.
-  - Backend cần bật CORS cho đúng origin kèm credentials (hiện `main.ts` chưa bật).
+  - Backend bật CORS cho đúng origin `APP_URL` kèm credentials trong `main.ts`.
 
 ## 10. Khi lên môi trường thật
 
 - Thêm callback URL và sign-out URL production vào app client, dùng HTTPS.
-- Cập nhật `COGNITO_REDIRECT_URI`, `CUSTOMER_APP_URL`, `MERCHANT_APP_URL` theo domain thật.
+- Cập nhật `COGNITO_REDIRECT_URI`, `APP_URL` theo domain thật.
 - Đặt `APP_ENV=production` để cookie có cờ `Secure`.
 - Chuyển Google consent screen từ **Testing** sang **In production** khi mở cho người dùng ngoài.
 - Lưu secret trong secret store của môi trường deploy, không trong repo (repo public).

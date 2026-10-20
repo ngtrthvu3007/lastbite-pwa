@@ -1,6 +1,6 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { RedisService } from '../../redis/redis.service';
-import { AUTH_CONFIG, AuthApp, AuthConfig } from '../auth.config';
+import { AUTH_CONFIG, AuthConfig } from '../auth.config';
 import { createRandomToken, toSha256 } from '../auth.crypto';
 import { COGNITO_AUTHORIZE_PATH, COGNITO_GOOGLE_PROVIDER, COGNITO_SCOPES } from '../auth.constants';
 
@@ -24,22 +24,21 @@ export class OAuthTransactionService {
     return `${OAUTH_STATE_PREFIX}${toSha256(state)}`;
   }
 
-  private validateReturnTo(app: AuthApp, returnToValue: string): string {
-    const appUrl = new URL(this.config.apps[app]);
+  private validateReturnTo(returnToValue: string): string {
+    const appUrl = new URL(this.config.appUrl);
     // Resolving against appUrl also accepts a relative path like "/orders".
     const returnTo = new URL(returnToValue, appUrl);
 
     const isSameOrigin = returnTo.origin === appUrl.origin;
     const hasCredentials = Boolean(returnTo.username || returnTo.password);
 
-    if (!isSameOrigin || hasCredentials)
-      throw new BadRequestException('returnTo is not allowed for this app');
+    if (!isSameOrigin || hasCredentials) throw new BadRequestException('returnTo is not allowed');
 
     return returnTo.toString();
   }
 
-  async beginTransactionService(app: AuthApp, returnToValue = ''): Promise<string> {
-    const returnTo = this.validateReturnTo(app, returnToValue);
+  async beginTransactionService(returnToValue = ''): Promise<string> {
+    const returnTo = this.validateReturnTo(returnToValue);
     const state = createRandomToken();
     const nonce = createRandomToken();
 

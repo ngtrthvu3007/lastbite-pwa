@@ -42,23 +42,30 @@ describe('AuthController (e2e)', () => {
     await request(app.getHttpServer())
       .get('/auth/login')
       .query({
-        app: 'customer',
         returnTo: 'http://localhost:5173/orders',
       })
       .expect(302)
       .expect('Location', 'https://auth.example.com/oauth2/authorize?identity_provider=Google');
 
-    expect(auth.beginLoginService).toHaveBeenCalledWith('customer', 'http://localhost:5173/orders');
+    expect(auth.beginLoginService).toHaveBeenCalledWith('http://localhost:5173/orders');
   });
 
-  it.each([{}, { app: 'admin' }])(
-    'GET /auth/login rejects a missing or unknown app',
-    async (query) => {
-      await request(app.getHttpServer()).get('/auth/login').query(query).expect(400);
+  it('GET /auth/login allows an omitted returnTo', async () => {
+    auth.beginLoginService.mockResolvedValue('https://auth.example.com/oauth2/authorize');
 
-      expect(auth.beginLoginService).not.toHaveBeenCalled();
-    },
-  );
+    await request(app.getHttpServer()).get('/auth/login').expect(302);
+
+    expect(auth.beginLoginService).toHaveBeenCalledWith(undefined);
+  });
+
+  it('GET /auth/login rejects an invalid returnTo type', async () => {
+    await request(app.getHttpServer())
+      .get('/auth/login')
+      .query({ returnTo: ['a', 'b'] })
+      .expect(400);
+
+    expect(auth.beginLoginService).not.toHaveBeenCalled();
+  });
 
   it('GET /auth/callback creates a LastBite session and redirects to the app', async () => {
     const expiresAt = new Date('2030-01-08T00:00:00.000Z');

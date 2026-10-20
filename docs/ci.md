@@ -17,8 +17,7 @@ hằng ngày và để biết sửa ở đâu khi CI đỏ.
 ## Chạy gì
 
 - `lb-api`: eslint, prettier, unit test, e2e test, build.
-- `lb-merchant`: oxlint, eslint, prettier, unit test, build (build đã gồm type-check).
-- `lb-customer`: chỉ build, vì app chưa có lint, prettier hay test.
+- `lb-web`: chỉ build, vì app chưa có lint, prettier hay test.
 - Test chỉ chạy bằng dữ liệu giả, không cần Postgres, Redis hay Cognito thật.
   - Lý do: mọi client bên ngoài đều được mock. `lb-api` đọc `.env.test.local`, nên CI tự tạo file này với giá trị giả.
 
@@ -28,7 +27,7 @@ Các script `lint` và `format` trong `package.json` có `--fix` hoặc `--write
 ## Chỉ chạy app có thay đổi
 
 - Job `changes` xem PR đụng vào thư mục app nào, các job app chỉ chạy khi app đó đổi.
-- Sửa chính `ci.yml` thì cả ba app cùng chạy.
+- Sửa chính `ci.yml` thì cả `lb-api` và `lb-web` cùng chạy.
 - App không đổi sẽ báo `Skipped`, và vẫn được tính là đạt.
 - Lý do dùng `if:` ở cấp job thay vì `on.paths`: workflow bị `paths:` bỏ qua thì không tạo check nào,
   nên check bắt buộc sẽ treo chờ mãi và PR không merge được.
@@ -41,7 +40,7 @@ Các script `lint` và `format` trong `package.json` có `--fix` hoặc `--write
   - Lý do: không ai đẩy thẳng vào nhánh chính.
 - Approve phải từ người khác người push cuối.
   - Lý do: tác giả không tự duyệt code của mình.
-- Ba check bắt buộc: `lb-api`, `lb-merchant`, `lb-customer`.
+- Hai check bắt buộc: `lb-api`, `lb-web`.
   - Lý do: chặn merge khi build hoặc lint hỏng.
   - Đây là tên job trong `ci.yml`; đổi tên job thì phải chọn lại check trong rule.
 - Branch phải cập nhật với base trước khi merge.
@@ -75,17 +74,7 @@ npm run build
 
 Test của `lb-api` cần `apps/lb-api/.env.test.local` (file này không commit, xem `.env.example`).
 
-`lb-merchant` (trong `apps/lb-merchant`):
-
-```sh
-npx oxlint .
-npx eslint .
-npx prettier --check src/
-npm run test:unit -- --run
-npm run build
-```
-
-`lb-customer` (trong `apps/lb-customer`):
+`lb-web` (trong `apps/lb-web`):
 
 ```sh
 npm run build

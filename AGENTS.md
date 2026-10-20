@@ -12,8 +12,7 @@ reservation.
 
 Planned stack:
 
-- `apps/lb-customer`: Nuxt SSR/PWA customer app.
-- `apps/lb-merchant`: Vue SPA/PWA merchant app.
+- `apps/lb-web`: unified Nuxt SSR/PWA for customer and merchant flows.
 - `apps/lb-api`: NestJS GraphQL API.
 - `apps/lb-reservation-engine`: Go service for atomic reservations.
 - `apps/lb-broadcast-service`: Go WebSocket service for real-time updates.
@@ -27,7 +26,7 @@ Planned stack:
 - MVP auth is Google OAuth only. Do not add email/password, magic links, or extra
   identity flows unless explicitly requested.
 - One account can act as both customer and merchant. Do not split customer and
-  merchant into separate account types.
+  merchant into separate account types or require separate PWA installs.
 - Merchant permissions are ownership-based. Never rely on role checks alone.
 - LastBite does not support in-app payment in the MVP. Buyers and merchants pay
   directly offline.
@@ -102,8 +101,7 @@ Helper functions:
 
 ## Frontend Rules
 
-- `apps/lb-customer` uses Nuxt SSR/PWA. Apply Nuxt conventions there.
-- `apps/lb-merchant` uses Vue SPA/PWA. Apply Vue conventions there.
+- `apps/lb-web` uses Nuxt SSR/PWA for every customer and merchant route. Apply Nuxt conventions there.
 - Use framework folders, components, composables, and utilities according to the
   existing app pattern.
 - Keep components focused on one responsibility. Extract only when it improves

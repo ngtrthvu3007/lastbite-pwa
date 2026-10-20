@@ -29,9 +29,9 @@ export class AuthController {
     status: 302,
     description: 'Redirects to the Google account chooser through Cognito.',
   })
-  @ApiBadRequestResponse({ description: 'Invalid app or returnTo URL.' })
+  @ApiBadRequestResponse({ description: 'Invalid returnTo URL.' })
   async loginController(@Query() query: AuthLoginQueryDto, @Res() response: Response) {
-    const authorizeUrl = await this.authService.beginLoginService(query.app, query.returnTo);
+    const authorizeUrl = await this.authService.beginLoginService(query.returnTo);
     response.redirect(authorizeUrl);
   }
 

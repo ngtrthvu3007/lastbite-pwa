@@ -209,7 +209,7 @@ Dùng khi resource đã tồn tại trên AWS, không muốn tạo lại.
   - `terraform output -raw COGNITO_CLIENT_SECRET`
 - Đối chiếu output với biến của `lb-api` (tất cả ghi vào `apps/lb-api/.env`):
   - `COGNITO_USER_POOL_ID`, `COGNITO_CLIENT_ID`, `COGNITO_CLIENT_SECRET`, `COGNITO_DOMAIN`.
-  - `COGNITO_REDIRECT_URI`, `CUSTOMER_APP_URL`, `MERCHANT_APP_URL` lấy từ biến, không phải output.
+  - `COGNITO_REDIRECT_URI`, `APP_URL` lấy từ biến, không phải output.
 
 ## 9. Xoá resource
 

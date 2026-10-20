@@ -1,7 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { AuthSessionService, CreatedSession } from './session/auth-session.service';
 import { CognitoOAuthService } from './oauth/cognito-oauth.service';
-import { AuthApp } from './auth.config';
 import { CurrentUserDto } from '../common';
 import { OAuthTransactionService } from './oauth/oauth-transaction.service';
 import { UserService } from './user.service';
@@ -19,8 +18,8 @@ export class AuthService {
     private readonly authSessions: AuthSessionService,
   ) {}
 
-  async beginLoginService(app: AuthApp, returnTo?: string) {
-    return this.oauthTransactions.beginTransactionService(app, returnTo);
+  async beginLoginService(returnTo?: string) {
+    return this.oauthTransactions.beginTransactionService(returnTo);
   }
 
   async completeLoginService(
