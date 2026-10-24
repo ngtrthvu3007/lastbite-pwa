@@ -3,6 +3,6 @@
 .terraform/
 *.tfvars
 .envrc
+.claude
+.playwright-mcp
 
-# Claude Code personal settings
-.claude/settings.local.json

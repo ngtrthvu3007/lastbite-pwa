@@ -48,6 +48,12 @@ resource "aws_cognito_identity_provider" "google" {
     name           = "name"
     picture        = "picture"
   }
+  lifecycle {
+    ignore_changes = [
+      attribute_mapping,
+      provider_details,
+    ]
+  }
 }
 
 resource "aws_cognito_user_pool_client" "backend" {
@@ -72,5 +78,12 @@ resource "aws_cognito_user_pool_client" "backend" {
     access_token  = "hours"
     id_token      = "hours"
     refresh_token = "days"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      generate_secret,
+      token_validity_units,
+    ]
   }
 }

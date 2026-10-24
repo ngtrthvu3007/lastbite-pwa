@@ -22,7 +22,7 @@ const CLAIMS = {
 };
 
 const config: AuthConfig = {
-  apps: { customer: 'http://localhost:5173', merchant: 'http://localhost:5174' },
+  appUrl: 'http://localhost:5173',
   cognito: {
     clientId: 'client-id',
     clientSecret: 'client-secret',

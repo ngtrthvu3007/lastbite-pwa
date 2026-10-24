@@ -102,8 +102,7 @@ Mục tiêu dự án: học tech stack (Nuxt, Vue, NestJS, Golang, gRPC, RabbitM
 
 | Thành phần | Vai trò | Vì sao cần |
 | --- | --- | --- |
-| Nuxt (SSR, PWA) | `apps/lb-customer` — customer app | SEO cho deal/cửa hàng, PWA cho trải nghiệm mobile-first, push notification |
-| Vue (SPA, PWA) | `apps/lb-merchant` — merchant app | Không cần SEO, PWA để tiện dùng tại quầy, push báo đơn mới |
+| Nuxt (SSR, PWA) | `apps/lb-web` — customer và merchant flows | Một PWA chung, SEO cho deal/cửa hàng, trải nghiệm mobile-first và lối vào thao tác merchant |
 | NestJS (GraphQL) | `apps/lb-api` — API chính | CRUD cửa hàng/bài đăng/user, query linh hoạt qua GraphQL |
 | Go — reservation engine | `apps/lb-reservation-engine` — atomic giữ chỗ | Bài toán concurrency thật — chống race condition khi nhiều người tranh 1 phần cuối |
 | Go — broadcast service | `apps/lb-broadcast-service` — real-time WebSocket | Đẩy cập nhật số lượng/giá cho nhiều client cùng lúc |
@@ -124,8 +123,7 @@ Mục tiêu dự án: học tech stack (Nuxt, Vue, NestJS, Golang, gRPC, RabbitM
 ```
 lastbite/
 ├── apps/                       (code tự viết)
-│   ├── lb-customer/             (Nuxt SSR, PWA — customer)
-│   ├── lb-merchant/             (Vue SPA, PWA — merchant app)
+│   ├── lb-web/                  (Nuxt SSR, PWA — customer và merchant flows)
 │   ├── lb-api/                  (NestJS GraphQL)
 │   ├── lb-reservation-engine/   (Go)
 │   ├── lb-broadcast-service/    (Go)
@@ -149,7 +147,7 @@ Chọn self-managed thay vì EKS để hiểu sâu cách cluster vận hành (co
 - **kubeadm init** trên control plane, **kubeadm join** trên 2 worker
 - **CNI**: Flannel hoặc Calico (Calico nếu muốn học thêm NetworkPolicy)
 - 3 node (không phải 1) để thấy rõ hiệu ứng scheduler rải pod qua nhiều máy khác nhau và self-healing khi 1 worker chết — 1 node duy nhất về bản chất chỉ tương đương PM2 cluster mode (nhiều process, vẫn 1 máy), không thể hiện được đặc trưng phân tán của k8s
-- Deployment cho Nuxt customer app, Vue merchant app, NestJS, Go services/workers với `replicas ≥ 2` khi phù hợp
+- Deployment cho Nuxt web app, NestJS, Go services/workers với `replicas ≥ 2` khi phù hợp
 - StatefulSet cho Postgres, Redis, RabbitMQ (dùng `nodeAffinity` ghim vào 1 worker cố định để tránh vấn đề volume khi chưa dùng network storage)
 - Ingress Controller (Nginx Ingress) route path/domain vào các service
 - Chỉ bật EC2 khi cần demo, tắt lúc khác để tiết kiệm chi phí (self-managed dùng EC2 thường, tính theo giờ, không có phí control plane cố định như EKS)

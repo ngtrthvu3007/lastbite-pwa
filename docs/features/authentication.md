@@ -39,8 +39,7 @@ Không nằm trong MVP:
 URL đã đăng ký:
 
 - Backend callback: `http://localhost:3000/auth/callback`.
-- Customer logout: `http://localhost:5173`.
-- Merchant logout: `http://localhost:5174`.
+- Web logout (customer và merchant routes): `http://localhost:5173`.
 - Google redirect về Cognito:
   `https://lastbite-auth-294787.auth.ap-southeast-1.amazoncognito.com/oauth2/idpresponse`.
 
@@ -75,8 +74,7 @@ COGNITO_CLIENT_SECRET=<backend-only-secret>
 COGNITO_DOMAIN=https://lastbite-auth-294787.auth.ap-southeast-1.amazoncognito.com
 COGNITO_REDIRECT_URI=http://localhost:3000/auth/callback
 AUTH_COOKIE_NAME=lb_session
-CUSTOMER_APP_URL=http://localhost:5173
-MERCHANT_APP_URL=http://localhost:5174
+APP_URL=http://localhost:5173
 ```
 
 ## 4. Cài đặt Cognito
@@ -188,7 +186,7 @@ aws cognito-idp create-user-pool-client `
   --explicit-auth-flows ALLOW_REFRESH_TOKEN_AUTH `
   --supported-identity-providers Google `
   --callback-urls "http://localhost:3000/auth/callback" `
-  --logout-urls "http://localhost:5173" "http://localhost:5174" `
+  --logout-urls "http://localhost:5173" `
   --default-redirect-uri "http://localhost:3000/auth/callback" `
   --allowed-o-auth-flows code `
   --allowed-o-auth-scopes openid email profile `
@@ -201,7 +199,7 @@ aws cognito-idp create-user-pool-client `
 Lưu ý:
 
 - Đây là confidential client dành cho `lb-api`.
-- Không đưa app client secret vào customer hoặc merchant app.
+- Không đưa app client secret vào web app.
 - Không dùng implicit flow.
 - Không chia sẻ output đầy đủ của lệnh tạo client vì có thể chứa secret.
 
@@ -210,7 +208,7 @@ Lưu ý:
 ### `GET /auth/login`
 
 - Nhận tùy chọn `returnTo`.
-- Chỉ chấp nhận origin customer và merchant đã cho phép.
+- Chỉ chấp nhận origin web app trong `APP_URL`.
 - Tạo `state` ngẫu nhiên.
 - Tạo `nonce` ngẫu nhiên.
 - Lưu OAuth transaction ngắn hạn trong Redis.
@@ -247,7 +245,7 @@ Frontend chỉ điều hướng trình duyệt đến `/auth/login`. Frontend kh
 - Tạo hoặc cập nhật LastBite user.
 - Tạo LastBite session riêng.
 - Set cookie `lb_session`.
-- Chỉ redirect về customer hoặc merchant URL đã cho phép.
+- Chỉ redirect về một URL thuộc origin `APP_URL` đã cho phép.
 
 Token request:
 
@@ -334,7 +332,7 @@ Secure=false chỉ cho local HTTP
 Lưu ý bảo mật:
 
 - Không đặt cookie `Domain` rộng trên localhost.
-- CORS chỉ cho phép customer và merchant origin.
+- CORS chỉ cho phép web app origin trong `APP_URL`.
 - Bật credential cho đúng origin, không dùng wildcard.
 - Kiểm tra `Origin` cho request thay đổi dữ liệu.
 - Không chỉ dựa vào `SameSite` để chống CSRF.

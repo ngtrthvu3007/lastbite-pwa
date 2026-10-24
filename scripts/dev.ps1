@@ -1,6 +1,6 @@
 param(
   [Parameter(Position = 0)]
-  [ValidateSet('infra', 'api', 'customer', 'merchant', 'frontend', 'all')]
+  [ValidateSet('infra', 'api', 'web', 'all')]
   [string] $Target = 'all',
 
   [Alias('d')]
@@ -10,10 +10,8 @@ param(
 $servicesByTarget = @{
   infra = @('postgres', 'redis', 'rabbitmq', 'minio')
   api = @('postgres', 'redis', 'rabbitmq', 'minio', 'lb-api')
-  customer = @('lb-customer')
-  merchant = @('lb-merchant')
-  frontend = @('lb-customer', 'lb-merchant')
-  all = @('postgres', 'redis', 'rabbitmq', 'minio', 'lb-api', 'lb-customer', 'lb-merchant')
+  web = @('lb-web')
+  all = @('postgres', 'redis', 'rabbitmq', 'minio', 'lb-api', 'lb-web')
 }
 
 $services = $servicesByTarget[$Target]

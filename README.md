@@ -9,12 +9,11 @@ Production deployment is planned through `infra/` and `k8s/`. The Docker Compose
 | App | Path | Stack | Local URL |
 | --- | --- | --- | --- |
 | API | `apps/lb-api` | NestJS GraphQL | <http://localhost:3000> |
-| Customer | `apps/lb-customer` | Nuxt SSR/PWA | <http://localhost:5173> |
-| Merchant | `apps/lb-merchant` | Vue SPA/PWA | <http://localhost:5174> |
+| Web | `apps/lb-web` | Nuxt SSR/PWA for customer and merchant flows | <http://localhost:5173> |
 
 ## Local Development With Docker
 
-Docker Compose starts the apps and local dependencies. Customer and merchant frontends support hot reload in containers. The API container is intentionally simple and does not hot reload; restart `lb-api` after backend code changes.
+Docker Compose starts the web app and local dependencies. The web app supports hot reload in containers. The API container is intentionally simple and does not hot reload; restart `lb-api` after backend code changes.
 
 First run creates `docker/dev/.env` from `docker/dev/.env.example`.
 
@@ -29,9 +28,7 @@ Run a smaller target:
 ```sh
 sh scripts/dev.sh infra
 sh scripts/dev.sh api
-sh scripts/dev.sh customer
-sh scripts/dev.sh merchant
-sh scripts/dev.sh frontend
+sh scripts/dev.sh web
 ```
 
 The `api` target recreates `lb-api` without restarting the infra containers, which is useful because the API container does not hot reload.
@@ -66,9 +63,7 @@ Run a smaller target:
 ```powershell
 .\scripts\dev.ps1 infra
 .\scripts\dev.ps1 api
-.\scripts\dev.ps1 customer
-.\scripts\dev.ps1 merchant
-.\scripts\dev.ps1 frontend
+.\scripts\dev.ps1 web
 ```
 
 The `api` target recreates `lb-api` without restarting the infra containers, which is useful because the API container does not hot reload.
@@ -127,8 +122,7 @@ Required API variables:
 | `COGNITO_CLIENT_SECRET` | Backend app client secret. Keep this server-side only. |
 | `COGNITO_DOMAIN` | Cognito Hosted UI domain, including `https://`. |
 | `COGNITO_REDIRECT_URI` | Backend OAuth callback URL registered in Cognito. |
-| `CUSTOMER_APP_URL` | Allowed customer app origin/return URL base. |
-| `MERCHANT_APP_URL` | Allowed merchant app origin/return URL base. |
+| `APP_URL` | Allowed LastBite web app origin/return URL base. |
 
 Do not commit `.env` files or paste secrets into issue comments.
 
@@ -167,16 +161,15 @@ and [`sts get-caller-identity`](https://docs.aws.amazon.com/cli/latest/reference
 
 MVP auth is Google OAuth through Cognito. The browser starts at `lb-api`, the
 API redirects to Cognito, Cognito redirects back to `lb-api`, then `lb-api`
-sets LastBite's own `HttpOnly` session cookie. Customer and merchant frontends
-must not store Cognito tokens.
+sets LastBite's own `HttpOnly` session cookie. The web app must not store
+Cognito tokens.
 
-Current local callback and app URLs:
+Current local callback and web app URL:
 
 | URL | Value |
 | --- | --- |
 | Cognito callback | `http://localhost:3000/auth/callback` |
-| Customer app | `http://localhost:5173` |
-| Merchant app | `http://localhost:5174` |
+| LastBite web app | `http://localhost:5173` |
 | Google redirect URI | `https://<cognito-domain>/oauth2/idpresponse` |
 
 Google Auth Platform setup:
@@ -270,18 +263,10 @@ npm install
 npm run start
 ```
 
-### Customer
+### Web app
 
 ```sh
-cd apps/lb-customer
-npm install
-npm run dev
-```
-
-### Merchant
-
-```sh
-cd apps/lb-merchant
+cd apps/lb-web
 npm install
 npm run dev
 ```
@@ -294,12 +279,7 @@ npm run build
 ```
 
 ```sh
-cd apps/lb-customer
-npm run build
-```
-
-```sh
-cd apps/lb-merchant
+cd apps/lb-web
 npm run build
 ```
 

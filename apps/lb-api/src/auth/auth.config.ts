@@ -2,15 +2,9 @@ import { getRequiredEnv } from '../common/get-required-env';
 
 export const AUTH_CONFIG = Symbol('AUTH_CONFIG');
 
-export const AUTH_APPS = ['customer', 'merchant'] as const;
-export type AuthApp = (typeof AUTH_APPS)[number];
-
 export function createAuthConfig() {
   return {
-    apps: {
-      customer: getRequiredEnv('CUSTOMER_APP_URL'),
-      merchant: getRequiredEnv('MERCHANT_APP_URL'),
-    } satisfies Record<AuthApp, string>,
+    appUrl: getRequiredEnv('APP_URL'),
     cognito: {
       clientId: getRequiredEnv('COGNITO_CLIENT_ID'),
       clientSecret: getRequiredEnv('COGNITO_CLIENT_SECRET'),

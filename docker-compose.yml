@@ -110,17 +110,18 @@ services:
         condition: service_started
     profiles: ["api", "apps"]
 
-  lb-customer:
+  lb-web:
     <<: *node-app
     build:
       context: .
-      dockerfile: docker/dev/lb-customer.Dockerfile
-    working_dir: /workspace/apps/lb-customer
-    command: sh /workspace/docker/dev/start-node-dev.sh lb-customer npm run dev -- --host 0.0.0.0
+      dockerfile: docker/dev/lb-web.Dockerfile
+    working_dir: /workspace/apps/lb-web
+    command: sh /workspace/docker/dev/start-node-dev.sh lb-web npm run dev -- --host 0.0.0.0
     environment:
       NODE_ENV: development
       HOST: 0.0.0.0
       NUXT_HOST: 0.0.0.0
+      NUXT_PUBLIC_API_BASE_URL: ${NUXT_PUBLIC_API_BASE_URL:?Set NUXT_PUBLIC_API_BASE_URL in docker/dev/.env}
       NUXT_PUBLIC_GRAPHQL_ENDPOINT: ${NUXT_PUBLIC_GRAPHQL_ENDPOINT:?Set NUXT_PUBLIC_GRAPHQL_ENDPOINT in docker/dev/.env}
       CHOKIDAR_USEPOLLING: "true"
       WATCHPACK_POLLING: "true"
@@ -131,30 +132,8 @@ services:
       - "5173:5173"
     volumes:
       - .:/workspace
-      - lb_customer_node_modules:/workspace/apps/lb-customer/node_modules
-    profiles: ["customer", "apps"]
-
-  lb-merchant:
-    <<: *node-app
-    build:
-      context: .
-      dockerfile: docker/dev/lb-merchant.Dockerfile
-    working_dir: /workspace/apps/lb-merchant
-    command: sh /workspace/docker/dev/start-node-dev.sh lb-merchant npm run dev -- --host 0.0.0.0
-    environment:
-      NODE_ENV: development
-      VITE_GRAPHQL_ENDPOINT: ${VITE_GRAPHQL_ENDPOINT:?Set VITE_GRAPHQL_ENDPOINT in docker/dev/.env}
-      CHOKIDAR_USEPOLLING: "true"
-      WATCHPACK_POLLING: "true"
-      TSC_WATCHFILE: DynamicPriorityPolling
-      TSC_WATCHDIRECTORY: DynamicPriorityPolling
-      npm_config_update_notifier: "false"
-    ports:
-      - "5174:5174"
-    volumes:
-      - .:/workspace
-      - lb_merchant_node_modules:/workspace/apps/lb-merchant/node_modules
-    profiles: ["merchant", "apps"]
+      - lb_web_node_modules:/workspace/apps/lb-web/node_modules
+    profiles: ["web", "apps"]
 
 volumes:
   postgres_data:
@@ -162,5 +141,4 @@ volumes:
   rabbitmq_data:
   minio_data:
   lb_api_node_modules:
-  lb_customer_node_modules:
-  lb_merchant_node_modules:
+  lb_web_node_modules:

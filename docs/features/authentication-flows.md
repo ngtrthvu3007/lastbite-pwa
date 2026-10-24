@@ -33,7 +33,7 @@ Vị trí code:
 
 ```mermaid
 flowchart TD
-    A(["Người dùng bấm Continue with Google"]) --> B["GET /auth/login?app&returnTo<br/>func AuthController.loginController"]
+    A(["Người dùng bấm Continue with Google"]) --> B["GET /auth/login?returnTo<br/>func AuthController.loginController"]
     B --> C{"returnTo hợp lệ?<br/>func validateReturnTo"}
     C -- "không" --> X(["400"])
     C -- "có" --> D["Sinh state + nonce<br/>func randomToken"]
@@ -44,7 +44,7 @@ flowchart TD
 
 Chạy qua:
 
-- `AuthController.loginController` (`auth.controller.ts`): nhận `app`, `returnTo`; `AuthLoginQueryDto` validate đầu vào.
+- `AuthController.loginController` (`auth.controller.ts`): nhận `returnTo`; `AuthLoginQueryDto` validate đầu vào.
 - `AuthService.beginLoginService`: chỉ chuyển tiếp.
 - `OAuthTransactionService.beginTransactionService` (`oauth/oauth-transaction.service.ts`):
   - `validateReturnTo`: kiểm tra `returnTo`.
@@ -67,7 +67,7 @@ Chạy qua:
 
 Lỗi hay gặp:
 
-- 400 `returnTo is not allowed for this app`: `returnTo` khác origin với `CUSTOMER_APP_URL`/`MERCHANT_APP_URL`.
+- 400 `returnTo is not allowed`: `returnTo` khác origin với `APP_URL`.
 
 ---
 
@@ -121,7 +121,7 @@ Chạy qua:
   - Identity định danh bằng `sub` của Cognito, còn email/tên/avatar chỉ cập nhật theo.
   - Lý do: `sub` không đổi, còn email có thể đổi.
 - `auth_identities` tách khỏi `users`.
-  - Lý do: một tài khoản dùng được cả customer và merchant app.
+  - Lý do: một tài khoản dùng được cho cả customer và merchant flows trong cùng web app.
 - `createSessionService` chỉ lưu hash của token session.
   - Lý do: lộ DB cũng không dùng lại được cookie.
   - Không lưu refresh token của Cognito vì chưa có luồng refresh; thêm lại khi cần.

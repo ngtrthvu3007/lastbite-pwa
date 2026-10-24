@@ -1,0 +1,6 @@
+@import "tailwindcss";
+@import "tailwindcss-primeui";
+
+@theme {
+  --font-sans: 'Be Vietnam Pro', system-ui, sans-serif;
+}

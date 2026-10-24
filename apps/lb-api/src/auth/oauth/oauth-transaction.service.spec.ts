@@ -5,11 +5,9 @@ import { OAuthTransactionService } from './oauth-transaction.service';
 
 const config = createAuthConfig();
 
-const CUSTOMER_APP = 'customer';
-const MERCHANT_APP = 'merchant';
 const RETURN_PATH = '/orders';
-const CUSTOMER_RETURN_TO = new URL(RETURN_PATH, config.apps.customer).toString();
-const MERCHANT_RETURN_TO = new URL('/posts', config.apps.merchant).toString();
+const RETURN_TO = new URL(RETURN_PATH, config.appUrl).toString();
+const MERCHANT_RETURN_TO = new URL('/merchant/posts', config.appUrl).toString();
 const FOREIGN_RETURN_TO = 'https://attacker.example/callback';
 const RESPONSE_TYPE = 'code';
 const TRANSACTION_TTL_SECONDS = 10 * 60;
@@ -28,7 +26,7 @@ describe('OAuthTransactionService', () => {
   });
 
   it('stores a short-lived transaction and builds a direct Google authorize URL', async () => {
-    const result = await service.beginTransactionService(CUSTOMER_APP, CUSTOMER_RETURN_TO);
+    const result = await service.beginTransactionService(RETURN_TO);
 
     const url = new URL(result);
     const state = url.searchParams.get('state');
@@ -42,48 +40,45 @@ describe('OAuthTransactionService', () => {
     expect(nonce).toBeTruthy();
     expect(redis.set).toHaveBeenCalledWith(
       expect.not.stringContaining(state as string),
-      JSON.stringify({ nonce, returnTo: CUSTOMER_RETURN_TO }),
+      JSON.stringify({ nonce, returnTo: RETURN_TO }),
       TRANSACTION_TTL_SECONDS,
     );
   });
 
   it('resolves a relative returnTo path against the app origin', async () => {
-    await service.beginTransactionService(CUSTOMER_APP, RETURN_PATH);
+    await service.beginTransactionService(RETURN_PATH);
 
     expect(redis.set).toHaveBeenCalledWith(
       expect.any(String),
-      expect.stringContaining(JSON.stringify(CUSTOMER_RETURN_TO)),
+      expect.stringContaining(JSON.stringify(RETURN_TO)),
       TRANSACTION_TTL_SECONDS,
     );
   });
 
   it('rejects a returnTo URL outside the selected app origin', async () => {
-    await expect(service.beginTransactionService(CUSTOMER_APP, FOREIGN_RETURN_TO)).rejects.toThrow(
+    await expect(service.beginTransactionService(FOREIGN_RETURN_TO)).rejects.toThrow(
       'returnTo is not allowed',
     );
     expect(redis.set).not.toHaveBeenCalled();
   });
 
-  it('validates returnTo against the origin of the app that starts the login', async () => {
-    await service.beginTransactionService(MERCHANT_APP, MERCHANT_RETURN_TO);
+  it('allows customer and merchant paths on the same web app origin', async () => {
+    await service.beginTransactionService(MERCHANT_RETURN_TO);
 
     expect(redis.set).toHaveBeenCalledWith(
       expect.any(String),
       expect.stringContaining(JSON.stringify(MERCHANT_RETURN_TO)),
       TRANSACTION_TTL_SECONDS,
     );
-    await expect(service.beginTransactionService(MERCHANT_APP, CUSTOMER_RETURN_TO)).rejects.toThrow(
-      'returnTo is not allowed',
-    );
   });
 
   it('rejects a returnTo URL that carries credentials', async () => {
-    const withCredentials = new URL(RETURN_PATH, config.apps.customer);
+    const withCredentials = new URL(RETURN_PATH, config.appUrl);
     withCredentials.username = 'user';
 
-    await expect(
-      service.beginTransactionService(CUSTOMER_APP, withCredentials.toString()),
-    ).rejects.toThrow('returnTo is not allowed');
+    await expect(service.beginTransactionService(withCredentials.toString())).rejects.toThrow(
+      'returnTo is not allowed',
+    );
   });
 
   it('rejects an unknown or already used state', async () => {
