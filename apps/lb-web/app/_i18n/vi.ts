@@ -14,6 +14,13 @@ const vi = {
   'login.terms.terms': 'Điều khoản sử dụng',
   'login.terms.and': 'và',
   'login.terms.privacy': 'Chính sách quyền riêng tư',
+  'error.title': 'Có lỗi xảy ra',
+  'error.notFoundTitle': 'Không tìm thấy trang',
+  'error.notFound': 'Trang này không còn hoặc đường dẫn bị sai.',
+  'error.back': 'Quay lại',
+  'error.reload': 'Thử lại',
+  'error.generic': 'Đã có lỗi ngoài ý muốn. Hãy thử lại sau ít phút.',
+  'error.home': 'Về trang chủ',
 }
 
 export type MessageKey = keyof typeof vi

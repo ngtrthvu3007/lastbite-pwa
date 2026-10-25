@@ -7,6 +7,8 @@ useHead({ htmlAttrs: { lang: locale } })
 <template>
   <div>
     <NuxtRouteAnnouncer />
-    <NuxtPage />
+    <NuxtLayout>
+      <NuxtPage />
+    </NuxtLayout>
   </div>
 </template>

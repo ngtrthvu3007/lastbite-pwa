@@ -15,6 +15,13 @@ const en: Record<MessageKey, string> = {
   'login.terms.terms': 'Terms of Use',
   'login.terms.and': 'and',
   'login.terms.privacy': 'Privacy Policy',
+  'error.title': 'Something went wrong',
+  'error.notFoundTitle': 'Page not found',
+  'error.notFound': 'This page is gone or the link is wrong.',
+  'error.back': 'Go back',
+  'error.reload': 'Try again',
+  'error.generic': 'An unexpected error occurred. Please try again in a few minutes.',
+  'error.home': 'Back to home',
 }
 
 export default en
