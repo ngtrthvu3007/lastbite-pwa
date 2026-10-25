@@ -151,6 +151,21 @@ Font đề xuất:
 | `font.price` | 20 | 28 | 700 | Giá deal |
 | `font.cta` | 16 | 20 | 650 | Button text |
 
+Trong `apps/lb-web`, các token này nằm ở `@theme` của `app/main.css` và dùng qua class Tailwind chuẩn, không viết `text-[28px]`:
+
+| Class | Token | Size / line height |
+| --- | --- | ---: |
+| `text-xs` | `font.caption` | 12 / 16 |
+| `text-sm` | `font.bodySmall`, `font.label` | 14 / 20 |
+| `text-base` | `font.body`, `font.cta` | 16 / 24 |
+| `text-lg` | `font.h3` | 18 / 26 |
+| `text-xl` | `font.price` | 20 / 28 |
+| `text-2xl` | `font.h2` | 22 / 30 |
+| `text-3xl` | `font.h1` | 28 / 36 |
+| `text-4xl` | `font.display` | 32 / 40 |
+
+Màu tương tự: `brand`, `accent`, `danger` (kèm `-hover`, `-active`, `-soft`, `-text`) và `neutral-50…900` khớp bảng màu ở trên, ví dụ `bg-brand`, `text-neutral-700`, `bg-accent-soft`.
+
 Nguyên tắc:
 
 - Không scale font theo viewport width.
@@ -173,6 +188,16 @@ Nguyên tắc:
 | `space.10` | 40 |
 | `space.12` | 48 |
 | `space.16` | 64 |
+
+Spacing dùng thang 4px mặc định của Tailwind (`p-4` = 16), khớp từng giá trị trên. Chỉ có ba token layout được đặt tên, khai báo trong `@theme` của `apps/lb-web/app/main.css`:
+
+| Class | Value | Dùng cho |
+| --- | ---: | --- |
+| `max-w-app` | 448 | Khung mobile của một màn |
+| `px-gutter` | 24 (`space.6`) | Lề ngang của trang |
+| `h-touch` | 56 | Chiều cao tối thiểu nút chính và input merchant |
+
+Chưa có grid nhiều cột hay breakpoint riêng: MVP mobile-first, màn rộng hơn 448 chỉ căn giữa khung.
 
 Gợi ý sử dụng:
 
@@ -206,7 +231,7 @@ Nguyên tắc:
 | `border.error` | `2px solid color.status.danger` | Input lỗi, nút hủy |
 | `border.upload` | `2px dashed color.neutral.400` | Vùng tải ảnh |
 
-Không dùng đổ bóng cho card. Chỉ bottom sheet và nút nổi trên bản đồ có shadow.
+Card phẳng: viền `border.subtle`, bo `radius.md`, không đổ bóng, vì trắng trên nền cream cần viền để tách. Chỉ bottom sheet, popover và nút nổi trên bản đồ có shadow.
 
 ### Kích thước chạm
 
@@ -251,12 +276,18 @@ Xanh và cà chua có độ sáng gần nhau, nên người mù màu đỏ-xanh 
 - Icon cảnh báo đi kèm chip và dòng số phần.
 - Thanh số phần dùng hai sắc độ khác hẳn nhau (`#6BAE70` sáng, `#A52E1E` đậm).
 
+### Icon
+
+- Bộ icon là `primeicons` (`pi pi-*`), gắn qua prop `icon` của Button, Tag, Message hoặc `<i class="pi pi-…">`.
+- Màu và cỡ chữ theo token như chữ thường (`text-brand`, `text-danger`, `text-xl`); không tô màu ngoài palette.
+- Icon bấm được phải nằm trong vùng chạm đủ lớn (48, xem Kích thước chạm), không chỉ là glyph.
+- Icon báo trạng thái luôn kèm chữ. Logo và icon Google là SVG riêng (`AppLogo`, `GoogleIcon`), không thuộc bộ này.
+
 ## 8. Shadow Tokens
 
 | Token | Value | Dùng cho |
 | --- | --- | --- |
 | `shadow.none` | `none` | Surface phẳng |
-| `shadow.card` | `0 1px 3px rgba(31, 41, 51, 0.10)` | Post card |
 | `shadow.popover` | `0 8px 20px rgba(31, 41, 51, 0.12)` | Menu, popover |
 | `shadow.sheet` | `0 12px 32px rgba(31, 41, 51, 0.16)` | Bottom sheet |
 | `shadow.focus` | `0 0 0 3px rgba(46, 125, 50, 0.22)` | Focus ring |

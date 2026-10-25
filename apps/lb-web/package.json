@@ -17,6 +17,7 @@
     "@vue/apollo-composable": "^4.2.2",
     "graphql": "^16.11.0",
     "nuxt": "^4.5.2",
+    "primeicons": "^7.0.0",
     "primevue": "^4.5.5",
     "tailwindcss": "^4.3.3",
     "tailwindcss-primeui": "^0.6.1",
