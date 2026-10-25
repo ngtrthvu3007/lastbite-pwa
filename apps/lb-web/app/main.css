@@ -1,6 +1,82 @@
 @import "tailwindcss";
 @import "tailwindcss-primeui";
+@import "primeicons/primeicons.css";
 
-@theme {
+/* Bottom padding that clears the iOS home indicator in standalone PWA mode. */
+@utility pb-safe {
+  padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+}
+
+/* Tokens from docs/design-tokens.md. Use the utilities (text-xl, bg-brand), not [arbitrary values]. */
+/* static: emit every token as a :root variable, the PrimeVue preset reads them with var(). */
+@theme static {
   --font-sans: 'Be Vietnam Pro', system-ui, sans-serif;
+
+  /* Overrides Tailwind's scale so the standard names carry the doc's size/line-height pairs. */
+  --text-xs: 0.75rem; /* caption 12/16 */
+  --text-xs--line-height: 1rem;
+  --text-sm: 0.875rem; /* bodySmall, label 14/20 */
+  --text-sm--line-height: 1.25rem;
+  --text-base: 1rem; /* body, cta 16/24 */
+  --text-base--line-height: 1.5rem;
+  --text-lg: 1.125rem; /* h3 18/26 */
+  --text-lg--line-height: 1.625rem;
+  --text-xl: 1.25rem; /* price 20/28 */
+  --text-xl--line-height: 1.75rem;
+  --text-2xl: 1.375rem; /* h2 22/30 */
+  --text-2xl--line-height: 1.875rem;
+  --text-3xl: 1.75rem; /* h1 28/36 */
+  --text-3xl--line-height: 2.25rem;
+  --text-4xl: 2rem; /* display 32/40 */
+  --text-4xl--line-height: 2.5rem;
+
+  /* Named brand/accent/danger so they never collide with tailwindcss-primeui's primary and surface. */
+  --color-brand: #2e7d32;
+  --color-brand-hover: #25692a;
+  --color-brand-active: #1b5e20;
+  --color-brand-soft: #e3f1e1;
+  --color-brand-subtle: #f3faf4;
+
+  --color-accent: #f7b23b;
+  --color-accent-hover: #d99a22;
+  --color-accent-soft: #fff0d6;
+  --color-accent-text: #7a4a00;
+
+  --color-accent-contrast: #3a2a05; /* text on solid accent (discount badge) */
+
+  --color-success: #2e7d32;
+  --color-success-soft: #e3f1e1;
+  --color-warning: #f7b23b;
+  --color-warning-soft: #fff0d6;
+  --color-danger: #c43a28;
+  --color-danger-soft: #ffe8e3;
+
+  /* Stock bar: two clearly different shades, so "low" never relies on hue alone. */
+  --color-stock: #6bae70;
+  --color-stock-low: #a52e1e;
+
+  /* Radius: sm badges/banners, md button/input/card, lg bottom sheet. rounded-full stays Tailwind's. */
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1.25rem;
+
+  /* Layout: spacing steps stay on Tailwind's 4px scale (matches space.*); only these are named. */
+  --container-app: 28rem; /* mobile frame, 448 */
+  --spacing-gutter: 1.5rem; /* page side margin, space.6 */
+  --spacing-touch: 3.5rem; /* min height of main buttons and merchant inputs, 56 */
+
+  --shadow-popover: 0 8px 20px rgb(31 41 51 / 0.12);
+  --shadow-sheet: 0 12px 32px rgb(31 41 51 / 0.16);
+  --shadow-focus: 0 0 0 3px rgb(46 125 50 / 0.22);
+
+  --color-neutral-50: #fffaf2;
+  --color-neutral-100: #f7f4ef;
+  --color-neutral-200: #eee9e1;
+  --color-neutral-300: #e1dbd1;
+  --color-neutral-400: #cfc8bc;
+  --color-neutral-500: #98a1aa;
+  --color-neutral-600: #6b7680;
+  --color-neutral-700: #4b5560;
+  --color-neutral-800: #2f3a44;
+  --color-neutral-900: #1f2933;
 }
