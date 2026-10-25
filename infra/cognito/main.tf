@@ -28,7 +28,17 @@ resource "aws_cognito_user_pool" "main" {
 resource "aws_cognito_user_pool_domain" "main" {
   domain                = var.domain_prefix
   user_pool_id          = aws_cognito_user_pool.main.id
-  managed_login_version = 1
+  managed_login_version = 2
+}
+
+# An app client created through the API cannot use managed login until it has a branding style.
+# The depends_on makes the domain switch to managed login before the branding is created.
+resource "aws_cognito_managed_login_branding" "backend" {
+  user_pool_id                = aws_cognito_user_pool.main.id
+  client_id                   = aws_cognito_user_pool_client.backend.id
+  use_cognito_provided_values = true
+
+  depends_on = [aws_cognito_user_pool_domain.main]
 }
 
 resource "aws_cognito_identity_provider" "google" {

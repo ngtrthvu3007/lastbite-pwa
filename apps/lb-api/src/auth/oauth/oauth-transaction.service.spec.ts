@@ -1,6 +1,11 @@
 import { RedisService } from '../../redis/redis.service';
 import { createAuthConfig } from '../auth.config';
-import { COGNITO_AUTHORIZE_PATH, COGNITO_GOOGLE_PROVIDER, COGNITO_SCOPES } from '../auth.constants';
+import {
+  COGNITO_AUTHORIZE_PATH,
+  COGNITO_GOOGLE_PROVIDER,
+  COGNITO_PROMPT,
+  COGNITO_SCOPES,
+} from '../auth.constants';
 import { OAuthTransactionService } from './oauth-transaction.service';
 
 const config = createAuthConfig();
@@ -36,6 +41,7 @@ describe('OAuthTransactionService', () => {
     expect(url.searchParams.get('identity_provider')).toBe(COGNITO_GOOGLE_PROVIDER);
     expect(url.searchParams.get('response_type')).toBe(RESPONSE_TYPE);
     expect(url.searchParams.get('scope')).toBe(COGNITO_SCOPES);
+    expect(url.searchParams.get('prompt')).toBe(COGNITO_PROMPT);
     expect(state).toBeTruthy();
     expect(nonce).toBeTruthy();
     expect(redis.set).toHaveBeenCalledWith(

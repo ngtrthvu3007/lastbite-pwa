@@ -2,7 +2,12 @@ import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { RedisService } from '../../redis/redis.service';
 import { AUTH_CONFIG, AuthConfig } from '../auth.config';
 import { createRandomToken, toSha256 } from '../auth.crypto';
-import { COGNITO_AUTHORIZE_PATH, COGNITO_GOOGLE_PROVIDER, COGNITO_SCOPES } from '../auth.constants';
+import {
+  COGNITO_AUTHORIZE_PATH,
+  COGNITO_GOOGLE_PROVIDER,
+  COGNITO_PROMPT,
+  COGNITO_SCOPES,
+} from '../auth.constants';
 
 const OAUTH_TRANSACTION_TTL_SECONDS = 10 * 60;
 const OAUTH_STATE_PREFIX = 'auth:oauth:';
@@ -55,6 +60,7 @@ export class OAuthTransactionService {
       client_id: this.config.cognito.clientId,
       identity_provider: COGNITO_GOOGLE_PROVIDER,
       nonce,
+      prompt: COGNITO_PROMPT,
       redirect_uri: this.config.cognito.redirectUri,
       response_type: 'code',
       scope: COGNITO_SCOPES,
