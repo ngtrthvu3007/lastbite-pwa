@@ -1,13 +1,9 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { AuthSessionService, CreatedSession } from './session/auth-session.service';
+import { AuthSessionService } from './session/auth-session.service';
 import { CognitoOAuthService } from './oauth/cognito-oauth.service';
-import { CurrentUserDto } from '../common';
+import type { ActiveSession, CreatedSession, CompletedLogin } from '../common';
 import { OAuthTransactionService } from './oauth/oauth-transaction.service';
 import { UserService } from './user.service';
-
-interface CompletedLogin extends CreatedSession {
-  returnTo: string;
-}
 
 @Injectable()
 export class AuthService {
@@ -40,8 +36,12 @@ export class AuthService {
     return { ...session, returnTo: transaction.returnTo };
   }
 
-  async getCurrentUserService(token: string): Promise<CurrentUserDto | null> {
-    return this.authSessions.getCurrentUserService(token);
+  async getActiveSessionService(token: string): Promise<ActiveSession | null> {
+    return this.authSessions.getActiveSessionService(token);
+  }
+
+  async rotateSessionService(token: string): Promise<CreatedSession | null> {
+    return this.authSessions.rotateSessionService(token);
   }
 
   async logoutService(token: string) {
