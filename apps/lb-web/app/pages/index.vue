@@ -1,5 +1,5 @@
 <template>
-  <main class="min-h-screen bg-surface-50 p-6 text-color">
+  <div class="py-6">
     <nav class="mb-6 flex gap-3 text-sm font-semibold">
       <NuxtLink to="/merchant" class="text-primary hover:underline">Quản lý cửa hàng</NuxtLink>
       <NuxtLink to="/login" class="text-primary hover:underline">Đăng nhập</NuxtLink>
@@ -16,23 +16,23 @@
             Manage the customer details used for LastBite reservations.
           </p>
           <FloatLabel variant="on">
-            <InputText id="customer-name" class="w-full" default-value="LastBite Customer ádasdasdasd" />
+            <InputText id="customer-name" class="w-full" default-value="LastBite Customer" />
             <label for="customer-name">Name</label>
           </FloatLabel>
           <Button label="Save changes" />
         </TabPanel>
 
-        <TabPanel value="pickup" class="space-y-4 ">
+        <TabPanel value="pickup" class="space-y-4">
           <p class="text-sm text-muted-color">
-            Keep pickup contact details ready before limitsdadadadadadased food posts expire.
+            Keep pickup contact details ready before limited food posts expire.
           </p>
           <FloatLabel variant="on">
             <InputText id="pickup-phone" class="w-full" default-value="0900000000" />
             <label for="pickup-phone">Phone</label>
           </FloatLabel>
-          <Button label="Update pickup info" severity="secondary" class="" />
+          <Button label="Update pickup info" severity="secondary" />
         </TabPanel>
       </TabPanels>
     </Tabs>
-  </main>
+  </div>
 </template>
