@@ -14,4 +14,5 @@ export const API_CREDENTIALS = "include";
 
 export const API_PATH = {
   AUTH_ME: "/auth/me",
-  AUTH_LOGIN: "/auth/login",} as const;
+  AUTH_LOGIN: "/auth/login",
+} as const;
