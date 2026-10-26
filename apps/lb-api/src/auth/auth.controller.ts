@@ -1,4 +1,14 @@
-import { Controller, Get, Headers, HttpCode, Post, Query, Res, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Header,
+  Headers,
+  HttpCode,
+  Post,
+  Query,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiCookieAuth,
@@ -54,6 +64,7 @@ export class AuthController {
   }
 
   @Get('me')
+  @Header('Cache-Control', 'no-store')
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: 'Get the current LastBite user' })
   @ApiCookieAuth(AUTH_COOKIE_NAME)

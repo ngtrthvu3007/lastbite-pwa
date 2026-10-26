@@ -1,9 +1,11 @@
-import { BadRequestException, INestApplication, ValidationPipe } from '@nestjs/common';
+import { BadRequestException, INestApplication, Logger, ValidationPipe } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
 import { AuthController } from '../src/auth/auth.controller';
 import { AuthGuard } from '../src/auth/auth.guard';
 import { AuthService } from '../src/auth/auth.service';
+
+const inHours = (hours: number) => new Date(Date.now() + hours * 60 * 60 * 1000);
 
 describe('AuthController (e2e)', () => {
   let app: INestApplication;
@@ -11,7 +13,8 @@ describe('AuthController (e2e)', () => {
   const auth = {
     beginLoginService: jest.fn(),
     completeLoginService: jest.fn(),
-    getCurrentUserService: jest.fn(),
+    getActiveSessionService: jest.fn(),
+    rotateSessionService: jest.fn().mockResolvedValue(null),
     logoutService: jest.fn(),
   };
 
@@ -81,8 +84,12 @@ describe('AuthController (e2e)', () => {
       .expect(302)
       .expect('Location', 'http://localhost:5173/orders');
 
-    expect(response.headers['set-cookie']?.[0]).toContain('lb_session=lastbite-session-token');
-    expect(response.headers['set-cookie']?.[0]).toContain('HttpOnly');
+    const [session, hint] = response.headers['set-cookie'] ?? [];
+    expect(session).toContain('lb_session=lastbite-session-token');
+    expect(session).toContain('HttpOnly');
+    expect(hint).toContain('lb_signed_in=1');
+    expect(hint).toContain('Max-Age=');
+    expect(hint).not.toContain('HttpOnly');
     expect(auth.completeLoginService).toHaveBeenCalledWith(
       'authorization-code',
       'oauth-state',
@@ -128,7 +135,7 @@ describe('AuthController (e2e)', () => {
   it('GET /auth/me rejects a request without a session cookie', async () => {
     await request(app.getHttpServer()).get('/auth/me').expect(401);
 
-    expect(auth.getCurrentUserService).not.toHaveBeenCalled();
+    expect(auth.getActiveSessionService).not.toHaveBeenCalled();
   });
 
   it('GET /auth/me returns the authenticated user from the session cookie', async () => {
@@ -138,7 +145,7 @@ describe('AuthController (e2e)', () => {
       displayName: 'Customer',
       avatarUrl: null,
     };
-    auth.getCurrentUserService.mockResolvedValue(user);
+    auth.getActiveSessionService.mockResolvedValue({ user, expiresAt: inHours(48) });
 
     await request(app.getHttpServer())
       .get('/auth/me')
@@ -151,16 +158,88 @@ describe('AuthController (e2e)', () => {
         avatarUrl: null,
       });
 
-    expect(auth.getCurrentUserService).toHaveBeenCalledWith('opaque-token');
+    expect(auth.getActiveSessionService).toHaveBeenCalledWith('opaque-token');
   });
 
-  it('GET /auth/me rejects a session the service no longer accepts', async () => {
-    auth.getCurrentUserService.mockResolvedValue(null);
+  it('GET /auth/me does not rotate a session that is not close to expiry', async () => {
+    auth.getActiveSessionService.mockResolvedValue({
+      user: { id: 'user-id' },
+      expiresAt: inHours(3),
+    });
+
+    const response = await request(app.getHttpServer())
+      .get('/auth/me')
+      .set('Cookie', 'lb_session=opaque-token')
+      .expect(200)
+      .expect('Cache-Control', 'no-store');
+
+    expect(auth.rotateSessionService).not.toHaveBeenCalled();
+    expect(response.headers['set-cookie']).toBeUndefined();
+  });
+
+  it('GET /auth/me sends a new session cookie when the session was rotated', async () => {
+    auth.getActiveSessionService.mockResolvedValue({
+      user: { id: 'user-id' },
+      expiresAt: inHours(1),
+    });
+    auth.rotateSessionService.mockResolvedValueOnce({
+      token: 'rotated-token',
+      expiresAt: new Date('2030-01-08T00:00:00.000Z'),
+    });
+
+    const response = await request(app.getHttpServer())
+      .get('/auth/me')
+      .set('Cookie', 'lb_session=opaque-token')
+      .expect(200);
+
+    expect(auth.rotateSessionService).toHaveBeenCalledWith('opaque-token');
+    expect(response.headers['set-cookie']?.[0]).toContain('lb_session=rotated-token');
+    expect(response.headers['set-cookie']?.[0]).toContain('HttpOnly');
+    expect(response.headers['set-cookie']?.[1]).toContain('lb_signed_in=1');
+  });
+
+  it('GET /auth/me sends no cookie when another request already rotated the session', async () => {
+    auth.getActiveSessionService.mockResolvedValue({
+      user: { id: 'user-id' },
+      expiresAt: inHours(1),
+    });
+
+    const response = await request(app.getHttpServer())
+      .get('/auth/me')
+      .set('Cookie', 'lb_session=opaque-token')
+      .expect(200);
+
+    expect(auth.rotateSessionService).toHaveBeenCalledWith('opaque-token');
+    expect(response.headers['set-cookie']).toBeUndefined();
+  });
+
+  it('GET /auth/me still succeeds when rotating the session fails', async () => {
+    const warn = jest.spyOn(Logger.prototype, 'warn').mockImplementation();
+    auth.getActiveSessionService.mockResolvedValue({
+      user: { id: 'user-id' },
+      expiresAt: inHours(1),
+    });
+    auth.rotateSessionService.mockRejectedValueOnce(new Error('db down'));
+
+    const response = await request(app.getHttpServer())
+      .get('/auth/me')
+      .set('Cookie', 'lb_session=opaque-token')
+      .expect(200);
+
+    expect(response.headers['set-cookie']).toBeUndefined();
+    expect(warn).toHaveBeenCalledWith('Session rotation failed', expect.any(Error));
+    warn.mockRestore();
+  });
+
+  it('GET /auth/me rejects a session the service no longer accepts, without rotating it', async () => {
+    auth.getActiveSessionService.mockResolvedValue(null);
 
     await request(app.getHttpServer())
       .get('/auth/me')
       .set('Cookie', 'lb_session=expired-token')
       .expect(401);
+
+    expect(auth.rotateSessionService).not.toHaveBeenCalled();
   });
 
   it('POST /auth/logout revokes the session and clears the cookie', async () => {
@@ -171,6 +250,7 @@ describe('AuthController (e2e)', () => {
 
     expect(auth.logoutService).toHaveBeenCalledWith('opaque-token');
     expect(response.headers['set-cookie']?.[0]).toMatch(/^lb_session=;/);
+    expect(response.headers['set-cookie']?.[1]).toMatch(/^lb_signed_in=;/);
   });
 
   it('POST /auth/logout without a session cookie revokes nothing', async () => {

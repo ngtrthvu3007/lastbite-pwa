@@ -1,14 +1,7 @@
-export const AuthStatus = {
-  Idle: "idle",
-  Loading: "loading",
-  Ready: "ready",
-  Error: "error",
-} as const;
+// Hint cookie set by the API next to the HttpOnly lb_session; not proof of a session.
+export const SIGNED_IN_COOKIE = "lb_signed_in";
 
-export type AuthStatus = (typeof AuthStatus)[keyof typeof AuthStatus];
-
-export const AUTH_USER_STATE_KEY = "auth-user";
-export const AUTH_STATUS_STATE_KEY = "auth-status";
+export const AUTH_ME_QUERY_KEY = ["auth", "me"] as const;
 
 // File name of middleware/auth.ts; a page lists it in definePageMeta to require a signed-in user.
 export const AUTH_MIDDLEWARE = "auth";
