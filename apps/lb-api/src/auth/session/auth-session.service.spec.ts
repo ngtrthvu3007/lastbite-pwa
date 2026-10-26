@@ -37,11 +37,16 @@ describe('AuthSessionService', () => {
     const now = new Date('2030-01-01T00:00:00.000Z');
     const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
     jest.useFakeTimers().setSystemTime(now);
-    const db = { insert: jest.fn().mockReturnValue({ values: jest.fn() }) };
+    const values = jest.fn();
+    const db = { insert: jest.fn().mockReturnValue({ values }) };
 
     const session = await new AuthSessionService(db as never).createSessionService('user-id');
 
     expect(session.expiresAt.getTime()).toBe(now.getTime() + sevenDaysMs);
+    // createdAt is sent too: the DB default now() would make expiresAt exceed created_at + 7 days.
+    expect(values).toHaveBeenCalledWith(
+      expect.objectContaining({ createdAt: now, expiresAt: session.expiresAt }),
+    );
     jest.useRealTimers();
   });
 
@@ -49,7 +54,54 @@ describe('AuthSessionService', () => {
     const db = createSessionLookupDb([]);
     const service = new AuthSessionService(db as never);
 
-    await expect(service.getCurrentUserService('revoked-token')).resolves.toBeNull();
+    await expect(service.getActiveSessionService('revoked-token')).resolves.toBeNull();
+  });
+
+  describe('rotateSessionService', () => {
+    function createRotationDb(updated: unknown[]) {
+      const values = jest.fn().mockResolvedValue(undefined);
+      const returning = jest.fn().mockResolvedValue(updated);
+      const where = jest.fn().mockReturnValue({ returning });
+      const set = jest.fn().mockReturnValue({ where });
+      const tx = {
+        update: jest.fn().mockReturnValue({ set }),
+        insert: jest.fn().mockReturnValue({ values }),
+      };
+      const db = { transaction: jest.fn((run: (tx: unknown) => unknown) => run(tx)) };
+
+      return { db, tx, set, values };
+    }
+
+    afterEach(() => jest.useRealTimers());
+
+    it('returns null and creates nothing when no live session matches (already rotated or revoked)', async () => {
+      const { db, tx } = createRotationDb([]);
+
+      await expect(
+        new AuthSessionService(db as never).rotateSessionService('opaque-token'),
+      ).resolves.toBeNull();
+      expect(tx.insert).not.toHaveBeenCalled();
+    });
+
+    it('shortens the old session to the grace end and issues a new 7-day session', async () => {
+      const now = new Date('2030-01-01T00:00:00.000Z');
+      jest.useFakeTimers().setSystemTime(now);
+      const { db, set, values } = createRotationDb([{ userId: 'user-id' }]);
+
+      const session = await new AuthSessionService(db as never).rotateSessionService(
+        'opaque-token',
+      );
+
+      expect(set).toHaveBeenCalledWith({ expiresAt: new Date(now.getTime() + 2 * 60 * 1000) });
+      expect(values).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: 'user-id',
+          createdAt: now,
+          expiresAt: session?.expiresAt,
+        }),
+      );
+      expect(session?.expiresAt.getTime()).toBe(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+    });
   });
 
   it('revokes the Postgres session on logout', async () => {
