@@ -1,0 +1,20 @@
+{
+  "name": "lastbite-tests",
+  "private": true,
+  "scripts": {
+    "test": "playwright test",
+    "test:it": "playwright test --project=it",
+    "test:e2e": "playwright test --project=e2e",
+    "test:offline": "playwright test --grep-invert @external",
+    "report": "docsify serve results --port 4000",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.50.0",
+    "@types/node": "^22.0.0",
+    "@types/pg": "^8.11.10",
+    "docsify-cli": "^5.0.0",
+    "pg": "^8.13.0",
+    "typescript": "^5.6.0"
+  }
+}
