@@ -1,4 +1,10 @@
-import { BadGatewayException, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadGatewayException,
+  Inject,
+  Injectable,
+  Logger,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { CognitoJwtVerifier } from 'aws-jwt-verify';
 import type { CognitoIdTokenPayload } from 'aws-jwt-verify/jwt-model';
 import { AUTH_CONFIG, AuthConfig } from '../auth.config';
@@ -18,6 +24,8 @@ interface IdTokenClaims extends CognitoIdTokenPayload {
 
 @Injectable()
 export class CognitoOAuthService {
+  private readonly logger = new Logger(CognitoOAuthService.name);
+
   // Runs after the constructor parameter property is set (tsconfig target ES2021, so
   // useDefineForClassFields is off); moving to ES2022+ would make this.config undefined here.
   private readonly verifier = CognitoJwtVerifier.create({
@@ -48,6 +56,9 @@ export class CognitoOAuthService {
     });
 
     if (!response.ok) {
+      // Cognito explains a refusal in an "error" field (invalid_grant, invalid_client, ...).
+      const refusal = (await response.json().catch(() => ({}))) as { error?: string };
+      this.logger.warn(`Cognito token exchange refused: ${response.status} ${refusal.error ?? ''}`);
       throw new BadGatewayException('Cognito token exchange failed');
     }
 
