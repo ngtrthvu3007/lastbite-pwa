@@ -6,9 +6,15 @@ const route = useRoute()
 const { t } = useTranslate()
 const connecting = ref(false)
 const { loginWithGoogle } = useAuth()
-const { data: user, status, isLoading: isCheckingSession, refetch } = useFetchUser()
+const { data: user, status, isLoading, refetch } = useFetchUser()
 
-const hasError = computed(() => status.value === 'error')
+// The plugin may already be fetching (or have failed) when the page hydrates. Rendering that state
+// at once differs from the server HTML, and Vue does not patch the mismatch in production (the
+// Google button would stay disabled). So show it after mount.
+const isMounted = ref(false)
+onMounted(() => (isMounted.value = true))
+const isCheckingSession = computed(() => isMounted.value && isLoading.value)
+const hasError = computed(() => isMounted.value && status.value === 'error')
 
 // Only same-site paths: the backend also rejects a returnTo outside APP_URL.
 const redirectPath = computed(() => toSafeRedirectPath(route.query.redirect))
