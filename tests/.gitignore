@@ -1,0 +1,12 @@
+node_modules/
+playwright-report/
+test-results/
+.env
+
+# Evidence stays local for now; only the markdown reports are committed.
+results/screenshots/
+results/manual/screenshots/
+
+# Local viewer for the reports (npm run report).
+results/index.html
+results/_sidebar.md
