@@ -104,15 +104,42 @@ describe('AuthSessionService', () => {
     });
   });
 
-  it('revokes the Postgres session on logout', async () => {
-    const where = jest.fn().mockResolvedValue(undefined);
-    const set = jest.fn().mockReturnValue({ where });
-    const update = jest.fn().mockReturnValue({ set });
-    const service = new AuthSessionService({ update } as never);
+  describe('revokeSessionService', () => {
+    // The first update (the session itself) ends in returning(); the second (its grace siblings) is awaited as is.
+    function createRevokeDb(revoked: unknown[]) {
+      const returning = jest.fn().mockResolvedValue(revoked);
+      const where = jest
+        .fn()
+        .mockReturnValueOnce({ returning })
+        .mockResolvedValueOnce(undefined);
+      const set = jest.fn().mockReturnValue({ where });
+      const tx = { update: jest.fn().mockReturnValue({ set }) };
+      const db = { transaction: jest.fn((run: (tx: unknown) => unknown) => run(tx)) };
 
-    await service.revokeSessionService('opaque-token');
+      return { db, tx, set };
+    }
 
-    expect(update).toHaveBeenCalledWith(authSessions);
-    expect(set).toHaveBeenCalledWith({ revokedAt: expect.any(Date) });
+    afterEach(() => jest.useRealTimers());
+
+    it('revokes the session and the sessions of that user still in their grace period', async () => {
+      const now = new Date('2030-01-01T00:00:00.000Z');
+      jest.useFakeTimers().setSystemTime(now);
+      const { db, tx, set } = createRevokeDb([{ userId: 'user-id' }]);
+
+      await new AuthSessionService(db as never).revokeSessionService('opaque-token');
+
+      expect(tx.update).toHaveBeenCalledTimes(2);
+      expect(tx.update).toHaveBeenCalledWith(authSessions);
+      expect(set).toHaveBeenNthCalledWith(1, { revokedAt: now });
+      expect(set).toHaveBeenNthCalledWith(2, { revokedAt: now });
+    });
+
+    it('revokes nothing else when the token matches no live session', async () => {
+      const { db, tx } = createRevokeDb([]);
+
+      await new AuthSessionService(db as never).revokeSessionService('unknown-token');
+
+      expect(tx.update).toHaveBeenCalledTimes(1);
+    });
   });
 });

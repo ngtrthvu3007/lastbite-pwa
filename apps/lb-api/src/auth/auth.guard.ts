@@ -23,7 +23,11 @@ export class AuthGuard implements CanActivate {
     const token = getSessionToken(request.headers.cookie);
     const session = token ? await this.auth.getActiveSessionService(token) : null;
 
-    if (!token || !session) throw new UnauthorizedException(AUTHENTICATION_REQUIRED_MESSAGE);
+    if (!token || !session) {
+      // The 401 never reaches the handler, so a handler-level @Header would not be sent with it.
+      http.getResponse<Response>().setHeader('Cache-Control', 'no-store');
+      throw new UnauthorizedException(AUTHENTICATION_REQUIRED_MESSAGE);
+    }
 
     request.currentUser = session.user;
 

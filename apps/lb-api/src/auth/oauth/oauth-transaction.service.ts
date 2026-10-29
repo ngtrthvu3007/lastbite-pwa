@@ -29,10 +29,19 @@ export class OAuthTransactionService {
     return `${OAUTH_STATE_PREFIX}${toSha256(state)}`;
   }
 
+  private parseUrl(value: string, base: URL): URL {
+    try {
+      return new URL(value, base);
+    } catch {
+      throw new BadRequestException('returnTo is not allowed');
+    }
+  }
+
   private validateReturnTo(returnToValue: string): string {
     const appUrl = new URL(this.config.appUrl);
     // Resolving against appUrl also accepts a relative path like "/orders".
-    const returnTo = new URL(returnToValue, appUrl);
+    // new URL() throws on input like "http://", which must be a 400 like any other bad returnTo.
+    const returnTo = this.parseUrl(returnToValue, appUrl);
 
     const isSameOrigin = returnTo.origin === appUrl.origin;
     const hasCredentials = Boolean(returnTo.username || returnTo.password);

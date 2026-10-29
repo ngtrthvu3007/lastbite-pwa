@@ -1,3 +1,4 @@
+import { BadRequestException } from '@nestjs/common';
 import { RedisService } from '../../redis/redis.service';
 import { createAuthConfig } from '../auth.config';
 import {
@@ -86,6 +87,16 @@ describe('OAuthTransactionService', () => {
       'returnTo is not allowed',
     );
   });
+
+  it.each(['http://', '//', 'http://[', 'http://exa mple.com/', 'http://localhost:99999/'])(
+    'answers 400, not a TypeError, for the unparsable returnTo %s',
+    async (returnTo) => {
+      await expect(service.beginTransactionService(returnTo)).rejects.toBeInstanceOf(
+        BadRequestException,
+      );
+      expect(redis.set).not.toHaveBeenCalled();
+    },
+  );
 
   it('rejects an unknown or already used state', async () => {
     redis.getDel.mockResolvedValueOnce(null);

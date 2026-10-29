@@ -83,6 +83,9 @@ export async function deleteUser(userId: string) {
   await getPool().query('delete from users where id = $1', [userId]);
 }
 
+// For tests that probe the schema itself (constraints, columns) rather than the API.
+export const queryDb = (text: string, params: unknown[] = []) => getPool().query(text, params);
+
 export async function closeDb() {
   await pool?.end();
   pool = undefined;

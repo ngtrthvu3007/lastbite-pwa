@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { and, eq, gt, isNull } from 'drizzle-orm';
+import { and, eq, gt, isNull, lte } from 'drizzle-orm';
 import { DB, Database } from '../../db/database.module';
 import { authSessions, users } from '../../db/schema';
 import type { ActiveSession, CreatedSession } from '../../common';
@@ -91,11 +91,33 @@ export class AuthSessionService {
     return session ?? null;
   }
 
+  // Logout also ends the session a rotation left in its grace period. The table does not link the
+  // old and new session, so "in grace" means: same user, not revoked, dying within the grace window.
+  // Another device's session with more than the grace left is not touched.
   async revokeSessionService(token: string): Promise<void> {
     const tokenHash = toSha256(token);
-    await this.db
-      .update(authSessions)
-      .set({ revokedAt: new Date() })
-      .where(and(eq(authSessions.tokenHash, tokenHash), isNull(authSessions.revokedAt)));
+    const now = new Date();
+    const graceEnd = new Date(now.getTime() + SESSION_GRACE_MS);
+
+    await this.db.transaction(async (tx) => {
+      const [revoked] = await tx
+        .update(authSessions)
+        .set({ revokedAt: now })
+        .where(and(eq(authSessions.tokenHash, tokenHash), isNull(authSessions.revokedAt)))
+        .returning({ userId: authSessions.userId });
+
+      if (!revoked) return;
+
+      await tx
+        .update(authSessions)
+        .set({ revokedAt: now })
+        .where(
+          and(
+            eq(authSessions.userId, revoked.userId),
+            isNull(authSessions.revokedAt),
+            lte(authSessions.expiresAt, graceEnd),
+          ),
+        );
+    });
   }
 }
