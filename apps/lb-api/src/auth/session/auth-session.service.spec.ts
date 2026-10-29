@@ -108,10 +108,7 @@ describe('AuthSessionService', () => {
     // The first update (the session itself) ends in returning(); the second (its grace siblings) is awaited as is.
     function createRevokeDb(revoked: unknown[]) {
       const returning = jest.fn().mockResolvedValue(revoked);
-      const where = jest
-        .fn()
-        .mockReturnValueOnce({ returning })
-        .mockResolvedValueOnce(undefined);
+      const where = jest.fn().mockReturnValueOnce({ returning }).mockResolvedValueOnce(undefined);
       const set = jest.fn().mockReturnValue({ where });
       const tx = { update: jest.fn().mockReturnValue({ set }) };
       const db = { transaction: jest.fn((run: (tx: unknown) => unknown) => run(tx)) };
