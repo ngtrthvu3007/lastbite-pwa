@@ -1,5 +1,6 @@
 import { authIdentities, users } from '../db/schema';
-import { UserProfile, UserService } from './user.service';
+import type { UserProfile } from '../common';
+import { UserService } from './user.service';
 
 const profile: UserProfile = {
   cognitoSub: 'cognito-sub',

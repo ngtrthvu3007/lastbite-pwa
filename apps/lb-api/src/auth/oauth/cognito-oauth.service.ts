@@ -1,8 +1,14 @@
-import { BadGatewayException, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadGatewayException,
+  Inject,
+  Injectable,
+  Logger,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { CognitoJwtVerifier } from 'aws-jwt-verify';
 import type { CognitoIdTokenPayload } from 'aws-jwt-verify/jwt-model';
 import { AUTH_CONFIG, AuthConfig } from '../auth.config';
-import type { UserProfile } from '../user.service';
+import type { UserProfile } from '../../common';
 import { COGNITO_TOKEN_PATH } from '../auth.constants';
 
 const INVALID_ID_TOKEN_MESSAGE = 'Cognito ID token is invalid';
@@ -18,14 +24,20 @@ interface IdTokenClaims extends CognitoIdTokenPayload {
 
 @Injectable()
 export class CognitoOAuthService {
-  private readonly verifier: ReturnType<typeof createVerifier>;
+  private readonly logger = new Logger(CognitoOAuthService.name);
+
+  // Runs after the constructor parameter property is set (tsconfig target ES2021, so
+  // useDefineForClassFields is off); moving to ES2022+ would make this.config undefined here.
+  private readonly verifier = CognitoJwtVerifier.create({
+    clientId: this.config.cognito.clientId,
+    tokenUse: 'id',
+    userPoolId: this.config.cognito.userPoolId,
+  });
 
   constructor(
     @Inject(AUTH_CONFIG)
     private readonly config: AuthConfig,
-  ) {
-    this.verifier = createVerifier(config.cognito);
-  }
+  ) {}
 
   private async requestIdToken(code: string): Promise<string> {
     const { clientId, clientSecret, domain, redirectUri } = this.config.cognito;
@@ -44,6 +56,9 @@ export class CognitoOAuthService {
     });
 
     if (!response.ok) {
+      // Cognito explains a refusal in an "error" field (invalid_grant, invalid_client, ...).
+      const refusal = (await response.json().catch(() => ({}))) as { error?: string };
+      this.logger.warn(`Cognito token exchange refused: ${response.status} ${refusal.error ?? ''}`);
       throw new BadGatewayException('Cognito token exchange failed');
     }
 
@@ -78,8 +93,4 @@ export class CognitoOAuthService {
       avatarUrl: claims.picture ?? null,
     };
   }
-}
-
-function createVerifier({ clientId, userPoolId }: AuthConfig['cognito']) {
-  return CognitoJwtVerifier.create({ clientId, tokenUse: 'id', userPoolId });
 }

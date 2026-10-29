@@ -2,15 +2,9 @@ import { Inject, Injectable } from '@nestjs/common';
 import { and, eq, sql } from 'drizzle-orm';
 import { DB, Database } from '../db/database.module';
 import { authIdentities, users } from '../db/schema';
+import type { UserProfile } from '../common';
 
 const IDENTITY_PROVIDER = 'cognito';
-
-export interface UserProfile {
-  cognitoSub: string;
-  email: string;
-  displayName: string | null;
-  avatarUrl: string | null;
-}
 
 @Injectable()
 export class UserService {

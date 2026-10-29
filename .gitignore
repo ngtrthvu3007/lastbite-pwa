@@ -6,3 +6,11 @@
 .claude
 .playwright-mcp
 
+tests/node_modules/
+tests/.env
+tests/playwright-report/
+tests/test-results/
+tests/results/screenshots/
+tests/results/manual/screenshots/
+tests/results/index.html
+tests/results/_sidebar.md

@@ -1,18 +1,20 @@
 <script setup lang="ts">
+import { useFetchUser } from '~/composables/useFetchUser'
 import heroImg from '~~/assets/images/login-hero-img.jpg'
-import { AuthStatus } from '~/constants/auth'
 
 const route = useRoute()
 const { t } = useTranslate()
 const connecting = ref(false)
-const { user, status, fetchUser, loginWithGoogle } = useAuth()
+const { loginWithGoogle } = useAuth()
+const { data: user, status, isLoading, refetch } = useFetchUser()
 
-
-const hasError = computed(() => status.value === AuthStatus.Error)
-
-const isCheckingSession = computed(
-  () => status.value === AuthStatus.Idle || status.value === AuthStatus.Loading,
-)
+// The plugin may already be fetching (or have failed) when the page hydrates. Rendering that state
+// at once differs from the server HTML, and Vue does not patch the mismatch in production (the
+// Google button would stay disabled). So show it after mount.
+const isMounted = ref(false)
+onMounted(() => (isMounted.value = true))
+const isCheckingSession = computed(() => isMounted.value && isLoading.value)
+const hasError = computed(() => isMounted.value && status.value === 'error')
 
 // Only same-site paths: the backend also rejects a returnTo outside APP_URL.
 const redirectPath = computed(() => toSafeRedirectPath(route.query.redirect))
@@ -60,7 +62,7 @@ function startLogin() {
 
       <button v-if="hasError" type="button"
         class="flex h-touch w-full cursor-pointer items-center justify-center rounded-md border-0 bg-brand px-4 font-[inherit] text-base font-extrabold whitespace-nowrap text-white"
-        @click="fetchUser">
+        @click="() => refetch()">
         {{ t('login.retry') }}
       </button>
 
