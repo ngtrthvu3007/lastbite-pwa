@@ -25,9 +25,9 @@ Mọi lệnh chạy trong `apps/lb-api/`, dùng PowerShell.
 
 - Biến `DATABASE_URL` trong `apps/lb-api/.env` quyết định **cả API lẫn mọi lệnh Drizzle** chạy vào database nào.
   - Kiểm tra giá trị này trước mỗi lệnh `db:*`, nhất là khi đang trỏ vào Supabase.
-- Local (Docker): chạy `docker compose --env-file docker/dev/.env up -d postgres` ở thư mục gốc, rồi dùng
+- Local (Docker): chạy `docker compose up -d postgres` ở thư mục gốc, rồi dùng
   `postgresql://lastbite:change-me@localhost:54320/lastbite` và `APP_ENV=development`.
-  - Mật khẩu thật nằm trong `docker/dev/.env`.
+  - Các giá trị local mặc định nằm trong `docker-compose.yml`.
 - Hosted (Supabase): dùng chuỗi **pooler** trong Project Settings, `APP_ENV` khác `development`.
 - `APP_ENV=development` tắt SSL; mọi giá trị khác bật SSL.
 - Chi tiết các biến môi trường khác xem `README.md`, mục Environment Configuration.

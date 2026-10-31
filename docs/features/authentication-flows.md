@@ -15,11 +15,11 @@ Mô tả flow theo code hiện tại để debug. Cấu hình AWS/Cognito và se
 Vị trí code:
 
 - `oauth/`: giao dịch đăng nhập (`oauth-transaction.service`: state, nonce, returnTo) và nói chuyện với Cognito (`cognito-oauth.service`: đổi code lấy ID token, verify).
-- `user.service.ts`: tạo hoặc cập nhật user và identity trong Postgres.
+- `user.service.ts`: tạo hoặc cập nhật user và identity trong Postgres; `hasStoreService` cho `hasStore` của `/auth/me` (hiện là placeholder).
 - `session/`: session LastBite và cookie.
 - `auth.service.ts`: `completeLoginService` điều phối các bước của callback.
 - `auth.controller.ts`: bốn endpoint `login`, `callback`, `me`, `logout`.
-- `auth.guard.ts`: đọc cookie, gắn user vào request.
+- `auth.guard.ts`: đọc cookie, gắn user vào request, đổi session sắp hết hạn sang session mới.
 - `auth.config.ts`: đọc biến môi trường, báo lỗi ngay lúc khởi động nếu thiếu.
 - `auth.crypto.ts`: token ngẫu nhiên và sha256.
 - `dto/`: validate query của `login` và `callback`.
@@ -127,6 +127,8 @@ Chạy qua:
   - Không lưu refresh token của Cognito vì chưa có luồng refresh; thêm lại khi cần.
 - Session sống 7 ngày, cookie `HttpOnly`, `SameSite=Lax`, `Secure` khi production.
   - Lý do: JS không đọc được cookie; `Lax` hạn chế CSRF.
+- Cùng lúc set cookie gợi ý `lb_signed_in` (không `HttpOnly`, `Max-Age` bằng hạn session).
+  - Lý do: để `lb-web` biết khách hay người đã đăng nhập mà không phải gọi `/auth/me`; chỉ là tín hiệu UI, mọi request vẫn qua guard.
 
 Lỗi hay gặp:
 
@@ -146,21 +148,26 @@ flowchart TD
     A(["Request kèm cookie lb_session"]) --> B["func AuthGuard.canActivate<br/>func getSessionToken"]
     B --> C{"có token?"}
     C -- "không" --> X(["401 Authentication is required"])
-    C -- "có" --> D[("func getCurrentUserService<br/>sha256(token) tìm trong auth_sessions JOIN users")]
+    C -- "có" --> D[("func getActiveSessionService<br/>sha256(token) tìm trong auth_sessions JOIN users")]
     D --> E{"session chưa revoke và chưa hết hạn?"}
     E -- "không" --> X
     E -- "có" --> F["request.currentUser = user"]
-    F --> G(["Handler chạy, ví dụ GET /auth/me"])
+    F --> R{"còn dưới 2 giờ?"}
+    R -- "có" --> S["func rotateSessionService<br/>Set-Cookie lb_session + lb_signed_in"]
+    R -- "không" --> G
+    S --> G(["Handler chạy, ví dụ GET /auth/me"])
+    G --> H["meController: func hasStoreService<br/>trả user + hasStore"]
 ```
 
 Chạy qua:
 
 - `AuthGuard.canActivate` (`auth.guard.ts`): chạy trước handler.
   - `getSessionToken` (`session/auth.cookie.ts`): tách token khỏi header `cookie`.
-  - `AuthService.getCurrentUserService`: chỉ chuyển tiếp.
-  - `AuthSessionService.getCurrentUserService` (`session/auth-session.service.ts`): gọi `sha256`, rồi query `auth_sessions` JOIN `users`.
-  - Gắn `request.currentUser`, hoặc ném `UnauthorizedException`.
-- `AuthController.meController`: nhận user qua `@CurrentUser()` rồi trả lại.
+  - `AuthService.getActiveSessionService`: chỉ chuyển tiếp.
+  - `AuthSessionService.getActiveSessionService` (`session/auth-session.service.ts`): gọi `toSha256`, rồi query `auth_sessions` JOIN `users`, trả `{ user, expiresAt }`.
+  - Gắn `request.currentUser`, hoặc đặt `Cache-Control: no-store` rồi ném `UnauthorizedException`.
+  - Session còn dưới `SESSION_ROTATE_BELOW_MS` (2 giờ): `AuthService.rotateSessionService` chuyển tiếp tới `AuthSessionService.rotateSessionService` để tạo session mới, rồi `setSessionCookie` gửi lại cả `lb_session` và `lb_signed_in`.
+- `AuthController.meController`: nhận user qua `@CurrentUser()`, lấy `hasStore` từ `hasStoreService` (`user.service.ts`) rồi trả `{ ...user, hasStore }`.
   - `@CurrentUser()` (`common/decorators/current-user.decorator.ts`): đọc `request.currentUser` mà guard đã gắn, ném `UnauthorizedException` nếu thiếu.
 
 - Guard băm token rồi tra Postgres, không gọi Cognito.
@@ -171,6 +178,15 @@ Chạy qua:
   - Lý do: route nào quên `@UseGuards(AuthGuard)` sẽ lỗi 401 rõ ràng, không trả 200 với body rỗng một cách im lặng.
 - Hiện chưa có cache Redis cho session: mỗi request đọc Postgres.
   - Lý do: giữ đơn giản cho MVP; thêm cache khi cần đo được vấn đề tốc độ.
+- Session còn dưới 2 giờ được đổi sang session mới (7 ngày), session cũ sống thêm 2 phút.
+  - Lý do: người đang dùng app không bị 401 giữa chừng; request song song hoặc `Set-Cookie` bị mất vẫn dùng được token cũ.
+  - Rotation lỗi chỉ ghi log cảnh báo, request đã xác thực vẫn thành công.
+- 401 cũng có `Cache-Control: no-store`, handler `me` đặt header này cho 200.
+  - Lý do: guard ném lỗi trước khi handler chạy, nên header của handler không đi cùng 401.
+- `hasStore` hiện luôn là `false` (placeholder trong `hasStoreService`); khi có bảng `stores` sẽ thay bằng query `EXISTS` theo chủ sở hữu.
+  - Lý do: chưa có bảng stores; `hasStore` suy ra từ dữ liệu nên không cần cột role hay cờ trên `users`.
+- `hasStore` chỉ là UI hint, không phải permission.
+  - Lý do: merchant permission vẫn do ownership check ở service cho từng request.
 
 Lỗi hay gặp:
 
@@ -196,8 +212,8 @@ Chạy qua:
 - `AuthController.logoutController` (`auth.controller.ts`): không có guard.
   - `getSessionToken` (`session/auth.cookie.ts`): lấy token từ header `cookie`; không có token thì bỏ qua bước revoke.
   - `AuthService.logoutService`: chỉ chuyển tiếp.
-  - `AuthSessionService.revokeSessionService` (`session/auth-session.service.ts`): gọi `sha256`, rồi update `revoked_at`.
-  - `clearSessionCookie` (`session/auth.cookie.ts`): xoá cookie.
+  - `AuthSessionService.revokeSessionService` (`session/auth-session.service.ts`): gọi `toSha256`, rồi update `revoked_at`; thu hồi luôn session cũ của cùng user đang trong khoảng gia hạn sau rotation.
+  - `clearSessionCookie` (`session/auth.cookie.ts`): xoá `lb_session` và `lb_signed_in`.
   - `@HttpCode(204)`: trả 204.
 
 - Đánh dấu `revoked_at` trong DB thay vì xoá dòng.

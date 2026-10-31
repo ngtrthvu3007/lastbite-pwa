@@ -184,7 +184,7 @@ Lưu ý:
   - Chọn tài khoản trong danh sách Test users.
   - Sau khi đồng ý, trình duyệt quay về `http://localhost:5173`.
   - DevTools → Application → Cookies: có `lb_session`, cờ **HttpOnly** được bật.
-  - Mở `http://localhost:3000/auth/me`: trả về `id`, `email`, `displayName`, `avatarUrl`.
+  - Mở `http://localhost:3000/auth/me`: trả về `id`, `email`, `displayName`, `avatarUrl`, `hasStore` (hiện luôn `false`).
   - Gọi `POST /auth/logout`: trả 204 và cookie bị xoá.
 - Đăng nhập lần hai bằng cùng tài khoản:
   - Bảng `users` và `auth_identities` không có thêm dòng mới.
