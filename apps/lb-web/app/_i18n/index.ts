@@ -1,7 +1,7 @@
 import en from './en'
 import vi from './vi'
 
-export type { MessageKey } from './vi'
+export type { MessageKey, Messages } from './vi'
 
 export const messages = { vi, en }
 

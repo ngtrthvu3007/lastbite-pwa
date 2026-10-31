@@ -1,7 +1,7 @@
 import type { NuxtApp } from "#app";
 import { useQuery } from "@tanstack/vue-query";
 import { getAuthMe } from "~/api/auth";
-import { AUTH_ME_QUERY_KEY } from "~/constants/auth";
+import { AUTH_ME_QUERY_KEY } from "~/constants/common";
 
 // Also used by the plugin and middleware, which have no component to hold a subscription.
 export const buildUserQuery = (api: NuxtApp["$api"]) => ({

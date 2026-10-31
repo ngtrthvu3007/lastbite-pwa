@@ -14,3 +14,5 @@ tests/results/screenshots/
 tests/results/manual/screenshots/
 tests/results/index.html
 tests/results/_sidebar.md
+
+.env

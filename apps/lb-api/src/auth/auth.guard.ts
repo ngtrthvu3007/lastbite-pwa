@@ -5,11 +5,10 @@ import {
   Logger,
   UnauthorizedException,
 } from '@nestjs/common';
-import type { Response } from 'express';
 import { SESSION_ROTATE_BELOW_MS } from './auth.constants';
 import { getSessionToken, setSessionCookie } from './session/auth.cookie';
 import { AuthService } from './auth.service';
-import { AUTHENTICATION_REQUIRED_MESSAGE, type AuthenticatedRequest } from '../common';
+import { AUTHENTICATION_REQUIRED_MESSAGE, getRequestContext } from '../common';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -18,14 +17,13 @@ export class AuthGuard implements CanActivate {
   constructor(private readonly auth: AuthService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const http = context.switchToHttp();
-    const request = http.getRequest<AuthenticatedRequest>();
+    const { req: request, res: response } = getRequestContext(context);
     const token = getSessionToken(request.headers.cookie);
     const session = token ? await this.auth.getActiveSessionService(token) : null;
 
     if (!token || !session) {
       // The 401 never reaches the handler, so a handler-level @Header would not be sent with it.
-      http.getResponse<Response>().setHeader('Cache-Control', 'no-store');
+      response.setHeader('Cache-Control', 'no-store');
       throw new UnauthorizedException(AUTHENTICATION_REQUIRED_MESSAGE);
     }
 
@@ -37,9 +35,7 @@ export class AuthGuard implements CanActivate {
       try {
         const rotated = await this.auth.rotateSessionService(token);
 
-        if (rotated) {
-          setSessionCookie(http.getResponse<Response>(), rotated.token, rotated.expiresAt);
-        }
+        if (rotated) setSessionCookie(response, rotated.token, rotated.expiresAt);
       } catch (error) {
         this.logger.warn('Session rotation failed', error);
       }
