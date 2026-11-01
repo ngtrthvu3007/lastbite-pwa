@@ -3,6 +3,7 @@
 .terraform/
 *.tfvars
 .envrc
+.env
 .claude
 .playwright-mcp
 

@@ -254,14 +254,21 @@ Token request:
 - Grant type: `authorization_code`.
 - Chạy server-to-server từ `lb-api`.
 
+### `GET /auth/me`
+
+- Cần cookie `lb_session` hợp lệ, nếu không trả 401.
+- Trả `id`, `email`, `displayName`, `avatarUrl` và `hasStore`.
+- `hasStore` là boolean suy ra từ việc user có store. Hiện luôn là `false` vì chưa có bảng `stores`; khi có bảng sẽ thay bằng query `EXISTS`.
+- Cả 200 và 401 đều có `Cache-Control: no-store`.
+- Có thể kèm `Set-Cookie` khi session vừa được rotate.
+
 ### GraphQL request đã đăng nhập
 
 - Frontend gửi cookie bằng `credentials: include`.
 - Frontend không gửi Cognito Bearer token.
 - Auth guard đọc cookie `lb_session`.
 - Auth guard hash token phiên.
-- Tìm session trong Redis trước.
-- Fallback sang Postgres khi cache miss.
+- Tra session trực tiếp trong Postgres (chưa có cache Redis cho session).
 - Từ chối session hết hạn hoặc đã revoke.
 - Gắn internal user ID vào request context.
 
@@ -274,8 +281,8 @@ Authentication không quyết định quyền merchant. Resolver/service vẫn p
 ### Logout
 
 - Đánh dấu LastBite session đã revoke trong Postgres.
-- Xóa Redis session cache.
-- Xóa cookie bằng đúng path/domain cũ.
+- Thu hồi cả session cũ đang trong khoảng gia hạn sau rotation.
+- Xóa cookie `lb_session` và `lb_signed_in` bằng đúng path/domain cũ.
 - Chỉ redirect về URL logout đã đăng ký.
 - Luôn hủy local session dù Cognito logout thất bại.
 
@@ -314,10 +321,12 @@ Khi token Cognito hợp lệ:
 - Tạo ít nhất 32 byte ngẫu nhiên.
 - Encode thành opaque session token.
 - Chỉ gửi raw token trong cookie `lb_session`.
-- Chỉ lưu digest trong Postgres và Redis.
-- Postgres là nguồn dữ liệu chính.
-- Redis chỉ dùng cho lookup/cache và TTL.
+- Chỉ lưu digest trong Postgres.
+- Postgres là nguồn dữ liệu duy nhất của session.
+- Redis chỉ dùng cho OAuth state và nonce có TTL, không lưu session.
 - Không lưu Cognito refresh token ở backend trong MVP (chưa có luồng refresh); ID token chỉ dùng để xác thực lúc callback.
+- Session còn dưới 2 giờ thì `AuthGuard` đổi sang session mới 7 ngày; session cũ sống thêm 2 phút để request song song không bị 401.
+- Cookie `lb_signed_in` (không HttpOnly) chỉ là gợi ý UI để `lb-web` bỏ qua `/auth/me` với khách, không có giá trị bảo mật.
 
 Cookie đề xuất:
 
@@ -361,6 +370,8 @@ Quyền ứng dụng:
 - Không lấy từ Cognito group trong MVP.
 - Không tách role cố định customer/merchant.
 - Dựa vào dữ liệu và quyền sở hữu trong LastBite.
+- Không lưu cờ merchant trên `users`. `GET /auth/me` trả thêm `hasStore` (boolean, suy ra từ việc user có store) để frontend biết hiện merchant UI hay màn tạo store.
+- `hasStore` chỉ là UI hint, không phải permission. Permission vẫn do ownership check ở service.
 
 ## 9. Kiểm chứng cấu hình
 

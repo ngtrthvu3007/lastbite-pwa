@@ -15,70 +15,20 @@ Production deployment is planned through `infra/` and `k8s/`. The Docker Compose
 
 Docker Compose starts the web app and local dependencies. The web app supports hot reload in containers. The API container is intentionally simple and does not hot reload; restart `lb-api` after backend code changes.
 
-First run creates `docker/dev/.env` from `docker/dev/.env.example`.
-
-### Linux/macOS
-
 ```sh
-sh scripts/dev.sh all
+docker compose up --build
 ```
-
-Run a smaller target:
-
-```sh
-sh scripts/dev.sh infra
-sh scripts/dev.sh api
-sh scripts/dev.sh web
-```
-
-The `api` target recreates `lb-api` without restarting the infra containers, which is useful because the API container does not hot reload.
 
 Run detached:
 
 ```sh
-sh scripts/dev.sh all -d
+docker compose up --build -d
 ```
 
 Restart the API after backend code changes:
 
 ```sh
-docker compose --env-file docker/dev/.env restart lb-api
-```
-
-Optional one-time executable setup:
-
-```sh
-chmod +x scripts/dev.sh
-./scripts/dev.sh all
-```
-
-### Windows PowerShell
-
-```powershell
-.\scripts\dev.ps1 all
-```
-
-Run a smaller target:
-
-```powershell
-.\scripts\dev.ps1 infra
-.\scripts\dev.ps1 api
-.\scripts\dev.ps1 web
-```
-
-The `api` target recreates `lb-api` without restarting the infra containers, which is useful because the API container does not hot reload.
-
-Run detached:
-
-```powershell
-.\scripts\dev.ps1 all -Detached
-.\scripts\dev.ps1 all -d
-```
-
-Restart the API after backend code changes:
-
-```powershell
-docker compose --env-file docker/dev/.env restart lb-api
+docker compose restart lb-api
 ```
 
 ## Local Services
@@ -92,13 +42,9 @@ docker compose --env-file docker/dev/.env restart lb-api
 | MinIO API | <http://localhost:9000> |
 | MinIO Console | <http://localhost:9001> |
 
-Edit local Docker credentials and service URLs in `docker/dev/.env`.
+The local containers use the development defaults in `docker-compose.yml`. Override a value with a root `.env` file only when needed.
 
 ## Environment Configuration
-
-Local Docker reads shared service settings from `docker/dev/.env`. The first
-dev script run copies this file from `docker/dev/.env.example` when it does not
-exist yet.
 
 The API also reads backend-only settings from `apps/lb-api/.env`. Start from
 the example file:
