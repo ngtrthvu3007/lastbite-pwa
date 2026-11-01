@@ -389,4 +389,3 @@ Logo chính đã chốt là **takeaway food box**: hình hộp xanh lá, vết c
 - Banner vàng nhạt `#FFF0D6` dùng text nâu đậm `#7A4A00`.
 - Không dùng xanh lá nhạt làm text trên nền trắng.
 - Focus ring dùng green alpha để rõ nhưng không neon.
-
