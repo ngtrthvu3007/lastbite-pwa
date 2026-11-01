@@ -1,5 +1,9 @@
-import { defaultLocale, locales, messages, type Locale, type MessageKey } from "~/_i18n";
-import { LOCALE_STATE_KEY, PLACEHOLDER_PATTERN } from "~/constants/i18n";
+import { defaultLocale, locales, messages, type Locale, type MessageKey, type Messages } from "~/_i18n";
+import { LOCALE_STATE_KEY, PATTERN } from "~/constants/common";
+
+// "login.headline" reads messages.login.headline. MessageKey only lists paths that exist.
+const getMessage = (tree: Messages, key: MessageKey) =>
+  key.split(".").reduce<unknown>((node, part) => (node as Record<string, unknown>)[part], tree) as string;
 
 export const useTranslate = () => {
   // TODO: set the locale from the request header once that is decided.
@@ -9,7 +13,7 @@ export const useTranslate = () => {
   // t() reads locale.value, so a template re-renders when the locale changes. In <script> the call
   // runs once: wrap it as computed(() => t('key')) or the text stays in the old language.
   const t = (key: MessageKey, params: Record<string, string | number> = {}) =>
-    messages[locale.value][key].replace(PLACEHOLDER_PATTERN, (placeholder, name: string) =>
+    getMessage(messages[locale.value], key).replace(PATTERN.I18N_PLACEHOLDER,(placeholder, name: string) =>
       String(params[name] ?? placeholder),
     );
 

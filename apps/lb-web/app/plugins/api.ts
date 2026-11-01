@@ -1,4 +1,4 @@
-import { API_CREDENTIALS, HTTPStatus } from "~/constants/http";
+import { API_CREDENTIALS, HTTPStatus } from "~/constants/common";
 
 type ApiError = Error & { status?: number };
 type Options = {
