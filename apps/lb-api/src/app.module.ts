@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { APP_FILTER } from '@nestjs/core';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import type { Request, Response } from 'express';
 import { GraphQLModule } from '@nestjs/graphql';
@@ -7,13 +8,15 @@ import { ConfigModule } from '@nestjs/config';
 import { DatabaseModule } from './db/database.module';
 import { AuthModule } from './auth/auth.module';
 import { HealthResolver } from './health/health.resolver';
-import { isProduction } from './common';
+import { StoreModule } from './store/store.module';
+import { isProduction, ValidationExceptionFilter } from './common';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     DatabaseModule,
     AuthModule,
+    StoreModule,
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       autoSchemaFile: true,
@@ -23,6 +26,6 @@ import { isProduction } from './common';
     }),
   ],
   controllers: [AppController],
-  providers: [HealthResolver],
+  providers: [HealthResolver, { provide: APP_FILTER, useClass: ValidationExceptionFilter }],
 })
 export class AppModule {}
