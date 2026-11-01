@@ -38,6 +38,35 @@ export async function callApi(
   }
 }
 
+// A GraphQL call with its own cookie jar, like callApi. The body is { data, errors }; a refusal is
+// an entry in errors, not an HTTP status.
+export async function callGraphql(
+  playwright: PlaywrightWorkerArgs['playwright'],
+  query: string,
+  variables?: Record<string, unknown>,
+  token?: string,
+): Promise<ApiResult> {
+  const context = await playwright.request.newContext({ baseURL: env.apiUrl });
+
+  try {
+    const response = await context.post('/graphql', {
+      data: { query, variables },
+      headers: token ? buildSessionHeader(token) : {},
+      maxRedirects: 0,
+    });
+    const text = await response.text();
+
+    return {
+      status: response.status(),
+      headers: response.headers(),
+      cookies: parseSetCookies(response),
+      body: parseBody(text),
+    };
+  } finally {
+    await context.dispose();
+  }
+}
+
 function parseBody(text: string): unknown {
   if (!text) return null;
 

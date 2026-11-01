@@ -39,7 +39,7 @@ test.describe('signed-in user', () => {
 
     await page.goto('/merchant');
 
-    await expect(page.getByText('LastBite Merchant')).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Cửa hàng' })).toBeVisible();
     await expect(page).toHaveURL(/\/merchant$/);
     expect(authMeRequests).toHaveLength(1);
   });
@@ -69,7 +69,7 @@ test.describe('signed-in user', () => {
     const { userId, token } = await signIn(context, baseURL!, HOUR_MS);
 
     await page.goto('/merchant');
-    await expect(page.getByText('LastBite Merchant')).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Cửa hàng' })).toBeVisible();
 
     const cookies = await context.cookies();
     const session = cookies.find((cookie) => cookie.name === SESSION_COOKIE);

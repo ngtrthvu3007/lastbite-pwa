@@ -40,7 +40,7 @@ test.describe('two users on one browser, one after the other', () => {
   }) => {
     const alice = await signIn(context, baseURL!);
     await page.goto('/merchant');
-    await expect(page.getByText('LastBite Merchant')).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Cửa hàng' })).toBeVisible();
     expect(await whoAmI(context)).toEqual({ status: 200, email: alice.email });
 
     // User A signs out: both cookies go, and a protected page sends the visitor to login.
@@ -55,7 +55,7 @@ test.describe('two users on one browser, one after the other', () => {
     // User B signs in on the same browser.
     const bob = await signIn(context, baseURL!);
     await page.goto('/merchant');
-    await expect(page.getByText('LastBite Merchant')).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Cửa hàng' })).toBeVisible();
     expect(await whoAmI(context)).toEqual({ status: 200, email: bob.email });
 
     // The token user A had before signing out is dead.

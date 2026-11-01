@@ -46,6 +46,8 @@ npm run typecheck
 | `it/shared-device.spec.ts` | LB-95, LB-96 | Hai người dùng: mỗi session trả đúng user của mình, đăng xuất một người không đụng người kia, rotation của một người không đụng người kia |
 | `e2e/shared-device.spec.ts` | LB-96, LB-97, LB-98 | Một trình duyệt: A đăng xuất rồi B đăng nhập thì `/auth/me` ra B và token cũ của A bị từ chối; hai trình duyệt cùng lúc giữ hai user riêng |
 | `e2e/google-chooser.spec.ts` | LB-98 | Bấm Google tới được Google kèm `prompt=select_account` (`@external`) |
+| `it/store.spec.ts` | LB-18, LB-103, LB-107 | GraphQL `createStore`/`myStore`: một store cho một user, owner lấy từ session, phone lưu `0xxxxxxxxx`, `STORE_ALREADY_EXISTS` kể cả hai request đua nhau, `BAD_USER_INPUT` kèm `{ field, code }` và không tạo gì, không lộ `ownerId`, không đọc được store người khác; thiếu cookie, hết hạn, revoke thì `UNAUTHENTICATED`, rotation qua GraphQL; bảng `stores` (unique owner, cascade, FK, `varchar(10)`) |
+| `e2e/store.spec.ts` | LB-104 | Màn Cửa hàng (trống, có store, khách bị đưa sang login); form tạo store: lỗi từng ô không gọi API, sửa ô thì lỗi ô đó mất, đang lưu khoá ô và nút rồi về `MerchantHome`, đã có store hiện banner, lỗi `BAD_USER_INPUT` từ API vào đúng ô, mất mạng hiện toast và giữ dữ liệu |
 
 Test gắn `@finding` mô tả một lỗi hoặc lỗ hổng đã biết: nó **được phép đỏ** cho tới khi lỗi được sửa. Bỏ chúng khi cần bản chạy xanh: `npm run test:it -- --grep-invert @finding`.
 
