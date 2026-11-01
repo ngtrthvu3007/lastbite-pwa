@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
+import type { Request, Response } from 'express';
 import { GraphQLModule } from '@nestjs/graphql';
 import { AppController } from './app.controller';
 import { ConfigModule } from '@nestjs/config';
@@ -17,6 +18,8 @@ import { isProduction } from './common';
       driver: ApolloDriver,
       autoSchemaFile: true,
       playground: !isProduction(),
+      // AuthGuard needs the response to rotate the session cookie, so pass both.
+      context: ({ req, res }: { req: Request; res: Response }) => ({ req, res }),
     }),
   ],
   controllers: [AppController],
