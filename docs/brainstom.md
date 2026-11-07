@@ -120,7 +120,7 @@ Mục tiêu dự án: học tech stack (Nuxt, Vue, NestJS, Golang, gRPC, RabbitM
 
 **Cấu trúc monorepo:**
 
-```
+```shell
 lastbite/
 ├── apps/                       (code tự viết)
 │   ├── lb-web/                  (Nuxt SSR, PWA — customer và merchant flows)
