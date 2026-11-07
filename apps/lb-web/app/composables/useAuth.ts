@@ -1,6 +1,5 @@
-import { AUTH_ME_QUERY_KEY, AUTH_MIDDLEWARE, SIGNED_IN_COOKIE } from "~/constants/auth";
-import { API_PATH } from "~/constants/http";
-import { ROUTE } from "~/constants/routes";
+import { API_PATH, AUTH_ME_QUERY_KEY, SIGNED_IN_COOKIE } from "~/constants/common";
+import { AUTH_MIDDLEWARE, ROUTE } from "~/constants/routes";
 
 export const useAuth = () => {
   const nuxtApp = useNuxtApp();

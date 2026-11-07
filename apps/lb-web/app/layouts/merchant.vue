@@ -1,5 +1,5 @@
 <template>
-  <main class="min-h-screen bg-surface-50 p-6 text-color">
+  <main class="mx-auto flex min-h-dvh max-w-app flex-col bg-neutral-50 px-gutter text-neutral-900">
     <slot />
   </main>
 </template>
