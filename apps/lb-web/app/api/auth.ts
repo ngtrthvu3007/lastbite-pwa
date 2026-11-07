@@ -1,5 +1,5 @@
 import type { NuxtApp } from "#app";
-import { API_PATH, HTTPStatus } from "~/constants/http";
+import { API_PATH, HTTPStatus } from "~/constants/common";
 import type { AuthUser } from "~/types/auth";
 
 export const getAuthMe = async (api: NuxtApp["$api"]) => {

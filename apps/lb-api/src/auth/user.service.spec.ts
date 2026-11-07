@@ -79,4 +79,10 @@ describe('UserService', () => {
     );
     expect(userId).toBe('existing-user-id');
   });
+
+  it('reports that no user has a store until the stores table exists', async () => {
+    const service = new UserService({} as never);
+
+    await expect(service.hasStoreService('user-id')).resolves.toBe(false);
+  });
 });

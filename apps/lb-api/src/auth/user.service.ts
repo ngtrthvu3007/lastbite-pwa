@@ -64,4 +64,11 @@ export class UserService {
       return user.id;
     });
   }
+
+  // Placeholder: there is no stores table yet, so no user has a store.
+  // LB-112 (stores) replaces this with an EXISTS query on stores owned by userId.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- userId is used once the query lands
+  async hasStoreService(userId: string): Promise<boolean> {
+    return false;
+  }
 }

@@ -22,5 +22,7 @@ import { UserService } from './user.service';
     AuthGuard,
     AuthService,
   ],
+  // A resolver in another module needs AuthService to build its own AuthGuard.
+  exports: [AuthService],
 })
 export class AuthModule {}

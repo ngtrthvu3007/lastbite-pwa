@@ -45,7 +45,7 @@ function startLogin() {
       </div>
 
       <ul class="m-0 flex list-none flex-col gap-2 p-0">
-        <li v-for="key in (['login.benefit.nearby', 'login.benefit.price', 'login.benefit.payment'] as const)"
+        <li v-for="key in (['login.benefitNearby', 'login.benefitPrice', 'login.benefitPayment'] as const)"
           :key="key" class="flex items-start gap-3">
           <i class="pi pi-check mt-1 shrink-0 text-brand" aria-hidden="true" />
           <span class="text-base">{{ t(key) }}</span>
@@ -75,9 +75,9 @@ function startLogin() {
       </button>
 
       <p class="m-0 text-center text-sm text-neutral-600">
-        {{ t('login.terms.prefix') }}
-        <span class="underline">{{ t('login.terms.terms') }}</span> {{ t('login.terms.and') }}
-        <span class="underline">{{ t('login.terms.privacy') }}</span>.
+        {{ t('login.termsPrefix') }}
+        <span class="underline">{{ t('login.termsTerms') }}</span> {{ t('login.termsAnd') }}
+        <span class="underline">{{ t('login.termsPrivacy') }}</span>.
       </p>
     </div>
   </div>

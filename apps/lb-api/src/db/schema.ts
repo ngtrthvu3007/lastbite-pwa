@@ -10,6 +10,20 @@ export const users = pgTable('users', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
+export const stores = pgTable('stores', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  // One store per user. The unique constraint is also the index for the owner lookup.
+  ownerId: uuid('owner_id')
+    .notNull()
+    .unique()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  name: varchar('name', { length: 100 }).notNull(),
+  phone: varchar('phone', { length: 10 }).notNull(),
+  address: varchar('address', { length: 255 }).notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const authIdentities = pgTable(
   'auth_identities',
   {

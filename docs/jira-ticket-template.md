@@ -5,7 +5,7 @@ dev mới: đọc xong phải biết **làm gì, làm ở đâu, xong khi nào**
 
 ## 1. Cấu trúc
 
-```
+```bash
 Epic      Nhóm lớn theo module (ví dụ E01 - Xác thực và tài khoản)
 └─ Story  Một kết quả người dùng hoặc hệ thống nhìn thấy được
    └─ Subtask  Một đầu việc cụ thể, một người làm trong một lần
@@ -21,11 +21,12 @@ Epic      Nhóm lớn theo module (ví dụ E01 - Xác thực và tài khoản)
 Tiêu đề phải cho người đọc hình dung được ticket làm gì, mà không cần mở ticket.
 
 | Loại | Format | Ví dụ |
-|---|---|---|
+| --- | --- | --- |
 | Story | Kết quả cụ thể, không dùng danh từ chung | `/auth/me` trả thêm `hasStore` để FE biết user đã có store chưa |
 | Subtask | `[BE]` / `[FE]` / `[Test]` + động từ + đối tượng | `[BE] Thêm field hasStore (tạm false) vào response GET /auth/me` |
 
 Không dùng:
+
 - Tiêu đề chỉ có số thứ tự ("Subtask 2").
 - Tiêu đề trừu tượng ("Khóa session", "Hoàn thiện auth").
 - Tiêu đề nói về lý do mà không nói về việc.

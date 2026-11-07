@@ -1,8 +1,7 @@
 import { ApolloClient, ApolloLink, createHttpLink, InMemoryCache } from "@apollo/client/core";
 import { onError } from "@apollo/client/link/error";
 import { DefaultApolloClient } from "@vue/apollo-composable";
-import { GRAPHQL_UNAUTHENTICATED } from "~/constants/auth";
-import { API_CREDENTIALS } from "~/constants/http";
+import { API_CREDENTIALS, GRAPHQL_UNAUTHENTICATED } from "~/constants/common";
 
 export default defineNuxtPlugin((nuxtApp) => {
   const { graphqlEndpoint } = useRuntimeConfig().public;

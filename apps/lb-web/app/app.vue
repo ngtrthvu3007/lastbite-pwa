@@ -7,6 +7,7 @@ useHead({ htmlAttrs: { lang: locale } })
 <template>
   <div>
     <NuxtRouteAnnouncer />
+    <Toast position="top-center" />
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>
