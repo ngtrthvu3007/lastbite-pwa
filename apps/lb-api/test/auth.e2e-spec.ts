@@ -4,6 +4,7 @@ import request from 'supertest';
 import { AuthController } from '../src/auth/auth.controller';
 import { AuthGuard } from '../src/auth/auth.guard';
 import { AuthService } from '../src/auth/auth.service';
+import { UserService } from '../src/auth/user.service';
 
 const inHours = (hours: number) => new Date(Date.now() + hours * 60 * 60 * 1000);
 
@@ -18,10 +19,18 @@ describe('AuthController (e2e)', () => {
     logoutService: jest.fn(),
   };
 
+  const users = {
+    hasStoreService: jest.fn().mockResolvedValue(false),
+  };
+
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
       controllers: [AuthController],
-      providers: [{ provide: AuthService, useValue: auth }, AuthGuard],
+      providers: [
+        { provide: AuthService, useValue: auth },
+        { provide: UserService, useValue: users },
+        AuthGuard,
+      ],
     }).compile();
 
     app = moduleRef.createNestApplication();
@@ -138,7 +147,7 @@ describe('AuthController (e2e)', () => {
     expect(auth.getActiveSessionService).not.toHaveBeenCalled();
   });
 
-  it('GET /auth/me returns the authenticated user from the session cookie', async () => {
+  it('GET /auth/me returns the authenticated user and hasStore from the session cookie', async () => {
     const user = {
       id: 'user-id',
       email: 'customer@example.com',
@@ -156,9 +165,11 @@ describe('AuthController (e2e)', () => {
         email: 'customer@example.com',
         displayName: 'Customer',
         avatarUrl: null,
+        hasStore: false,
       });
 
     expect(auth.getActiveSessionService).toHaveBeenCalledWith('opaque-token');
+    expect(users.hasStoreService).toHaveBeenCalledWith('user-id');
   });
 
   it('GET /auth/me does not rotate a session that is not close to expiry', async () => {
@@ -237,9 +248,11 @@ describe('AuthController (e2e)', () => {
     await request(app.getHttpServer())
       .get('/auth/me')
       .set('Cookie', 'lb_session=expired-token')
-      .expect(401);
+      .expect(401)
+      .expect('Cache-Control', 'no-store');
 
     expect(auth.rotateSessionService).not.toHaveBeenCalled();
+    expect(users.hasStoreService).not.toHaveBeenCalled();
   });
 
   it('POST /auth/logout revokes the session and clears the cookie', async () => {
