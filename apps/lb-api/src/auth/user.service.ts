@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { and, eq, sql } from 'drizzle-orm';
 import { DB, Database } from '../db/database.module';
-import { authIdentities, users } from '../db/schema';
+import { authIdentities, stores, users } from '../db/schema';
 import type { UserProfile } from '../common';
 
 const IDENTITY_PROVIDER = 'cognito';
@@ -65,10 +65,13 @@ export class UserService {
     });
   }
 
-  // Placeholder: there is no stores table yet, so no user has a store.
-  // LB-112 (stores) replaces this with an EXISTS query on stores owned by userId.
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- userId is used once the query lands
   async hasStoreService(userId: string): Promise<boolean> {
-    return false;
+    const [store] = await this.db
+      .select({ id: stores.id })
+      .from(stores)
+      .where(eq(stores.ownerId, userId))
+      .limit(1);
+
+    return Boolean(store);
   }
 }

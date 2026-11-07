@@ -1,4 +1,5 @@
-import { authIdentities, users } from '../db/schema';
+import { PgDialect } from 'drizzle-orm/pg-core';
+import { authIdentities, stores, users } from '../db/schema';
 import type { UserProfile } from '../common';
 import { UserService } from './user.service';
 
@@ -38,6 +39,15 @@ function createTransaction(existingUserId?: string) {
     updateSet,
     identityValues,
   };
+}
+
+function createHasStoreDb(result: unknown[]) {
+  const limit = jest.fn().mockResolvedValue(result);
+  const where = jest.fn().mockReturnValue({ limit });
+  const from = jest.fn().mockReturnValue({ where });
+  const select = jest.fn().mockReturnValue({ from });
+
+  return { db: { select }, select, where };
 }
 
 describe('UserService', () => {
@@ -80,9 +90,23 @@ describe('UserService', () => {
     expect(userId).toBe('existing-user-id');
   });
 
-  it('reports that no user has a store until the stores table exists', async () => {
-    const service = new UserService({} as never);
+  it('reports false when the user does not own a store', async () => {
+    const { db, where } = createHasStoreDb([]);
+    const service = new UserService(db as never);
 
     await expect(service.hasStoreService('user-id')).resolves.toBe(false);
+
+    const { sql: query, params } = new PgDialect().sqlToQuery(where.mock.calls[0][0]);
+    expect(query).toContain('"owner_id" = $1');
+    expect(params).toEqual(['user-id']);
+  });
+
+  it('reports true when the user owns a store', async () => {
+    const { db, select } = createHasStoreDb([{ id: 'store-id' }]);
+    const service = new UserService(db as never);
+
+    await expect(service.hasStoreService('user-id')).resolves.toBe(true);
+
+    expect(select).toHaveBeenCalledWith({ id: stores.id });
   });
 });
