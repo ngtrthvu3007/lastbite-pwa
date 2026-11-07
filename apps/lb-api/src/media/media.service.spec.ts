@@ -16,10 +16,10 @@ describe('MediaService', () => {
       url: 'https://bucket.example.test',
       fields: { key: 'uploads/user-id/image.jpg', 'Content-Type': 'image/jpeg' },
     });
-    const service = new MediaService(
-      db as never,
-      { bucket: 'test-bucket', region: 'ap-southeast-1' },
-    );
+    const service = new MediaService(db as never, {
+      bucket: 'test-bucket',
+      region: 'ap-southeast-1',
+    });
 
     const upload = await service.createPostImageUploadService('user-id', {
       contentType: 'image/jpeg',

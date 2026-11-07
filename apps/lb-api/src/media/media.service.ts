@@ -1,8 +1,4 @@
-import {
-  GetObjectCommand,
-  HeadObjectCommand,
-  S3Client,
-} from '@aws-sdk/client-s3';
+import { GetObjectCommand, HeadObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { createPresignedPost } from '@aws-sdk/s3-presigned-post';
 import { Inject, Injectable } from '@nestjs/common';
@@ -47,19 +43,16 @@ export class MediaService {
       .values({ ownerUserId, objectKey, contentType: input.contentType })
       .returning({ id: mediaAssets.id });
     const expiresAt = new Date(Date.now() + UPLOAD_URL_TTL_SECONDS * 1000);
-    const upload = await createPresignedPost(
-      this.s3,
-      {
-        Bucket: this.config.bucket,
-        Key: objectKey,
-        Fields: { 'Content-Type': input.contentType },
-        Conditions: [
-          ['content-length-range', 1, MAX_POST_IMAGE_BYTES],
-          ['eq', '$Content-Type', input.contentType],
-        ],
-        Expires: UPLOAD_URL_TTL_SECONDS,
-      },
-    );
+    const upload = await createPresignedPost(this.s3, {
+      Bucket: this.config.bucket,
+      Key: objectKey,
+      Fields: { 'Content-Type': input.contentType },
+      Conditions: [
+        ['content-length-range', 1, MAX_POST_IMAGE_BYTES],
+        ['eq', '$Content-Type', input.contentType],
+      ],
+      Expires: UPLOAD_URL_TTL_SECONDS,
+    });
 
     return {
       assetId: asset.id,
