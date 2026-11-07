@@ -231,6 +231,34 @@ npm run build
 
 If dependencies change, run `npm install` in the changed app so `package-lock.json` is updated, then restart the Docker target.
 
+## API Documentation
+
+The `lb-api` process serves both API documentation tools on the same port. Start it with
+`.\scripts\dev.ps1 api` on Windows, or from `apps/lb-api` run `npm run start:dev`.
+
+| API style | Development URL | Purpose |
+| --- | --- | --- |
+| REST | <http://localhost:3000/api/docs> | Swagger UI for `/auth/*` and other REST endpoints. |
+| GraphQL | <http://localhost:3000/graphql> | GraphQL Playground for the generated schema, queries, and mutations. |
+
+GraphQL Playground starts automatically when `APP_ENV` is not `production`; it is disabled in
+production. It uses the same `/graphql` endpoint as `lb-web`, so no separate service or port is
+needed.
+
+For an authenticated GraphQL operation, first complete the normal Google login flow in the same
+browser so the `lb_session` cookie is present, then run a query such as:
+
+```graphql
+query MyStore {
+  myStore {
+    id
+    name
+    phone
+    address
+  }
+}
+```
+
 ## Contributing
 
 - `main` and `dev` are protected: branch off `dev`, open a pull request, and get one approval.
