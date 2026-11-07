@@ -22,6 +22,7 @@ hằng ngày và để biết sửa ở đâu khi CI đỏ.
   - Lý do: mọi client bên ngoài đều được mock. `lb-api` đọc `.env.test.local`, nên CI tự tạo file này với giá trị giả.
 
 Các script `lint` và `format` trong `package.json` có `--fix` hoặc `--write`. CI không dùng chúng.
+
 - Lý do: CI chỉ được báo lỗi, không tự sửa code rồi cho qua.
 
 ## Chỉ chạy app có thay đổi
