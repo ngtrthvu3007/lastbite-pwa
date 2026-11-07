@@ -4,6 +4,7 @@ export const ROUTE = {
   MERCHANT: "/merchant",
   MERCHANT_STORE: "/merchant/store",
   MERCHANT_STORE_NEW: "/merchant/store/new",
+  MERCHANT_POST_NEW: "/merchant/posts/new",
 } as const;
 
 // File name of a layouts/ file; a page lists it in definePageMeta.

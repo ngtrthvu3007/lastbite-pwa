@@ -21,5 +21,14 @@ const { t } = useTranslate()
       <span class="flex-1">{{ t('merchant.homeStore') }}</span>
       <i class="pi pi-angle-right text-neutral-600" aria-hidden="true" />
     </NuxtLink>
+
+    <NuxtLink
+      :to="ROUTE.MERCHANT_POST_NEW"
+      class="mt-3 flex items-center gap-3 rounded-md border border-neutral-200 bg-white p-5 text-base font-bold"
+    >
+      <i class="pi pi-plus-circle text-brand" aria-hidden="true" />
+      <span class="flex-1">{{ t('merchant.quickPost') }}</span>
+      <i class="pi pi-angle-right text-neutral-600" aria-hidden="true" />
+    </NuxtLink>
   </section>
 </template>

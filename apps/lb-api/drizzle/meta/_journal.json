@@ -29,6 +29,13 @@
       "when": 1793458615923,
       "tag": "0003_create_stores",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1794060653903,
+      "tag": "0004_create_post_media_assets",
+      "breakpoints": true
     }
   ]
 }
