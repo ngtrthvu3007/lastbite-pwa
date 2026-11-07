@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { SESSION_COOKIE } from '../support/cookies';
-import { closeDb, deleteUser, seedSession } from '../support/db';
+import { closeDb, deleteUser, seedSession, seedStore } from '../support/db';
 import { env } from '../support/env';
 import { attachJson } from '../support/evidence';
 
@@ -43,6 +43,20 @@ test.describe('what /auth/me returns', () => {
       hasStore: false,
     });
     expect(JSON.stringify(body)).not.toContain(token);
+  });
+
+  test('hasStore is true when the signed-in user owns a store', async ({ request }) => {
+    const { userId, token } = await seed();
+    await seedStore(userId, {
+      name: 'IT store',
+      phone: '0912345678',
+      address: '12 Nguyen Trai, Quan 1',
+    });
+
+    const response = await request.get('/auth/me', { headers: { cookie: `${SESSION_COOKIE}=${token}` } });
+
+    expect(response.status()).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({ id: userId, hasStore: true });
   });
 
   test('[LB-96][LB-101] a refused request is not cacheable either', async ({ request }) => {

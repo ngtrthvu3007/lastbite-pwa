@@ -155,6 +155,7 @@ describe('AuthController (e2e)', () => {
       avatarUrl: null,
     };
     auth.getActiveSessionService.mockResolvedValue({ user, expiresAt: inHours(48) });
+    users.hasStoreService.mockResolvedValueOnce(true);
 
     await request(app.getHttpServer())
       .get('/auth/me')
@@ -165,7 +166,7 @@ describe('AuthController (e2e)', () => {
         email: 'customer@example.com',
         displayName: 'Customer',
         avatarUrl: null,
-        hasStore: false,
+        hasStore: true,
       });
 
     expect(auth.getActiveSessionService).toHaveBeenCalledWith('opaque-token');
