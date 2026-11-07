@@ -34,7 +34,7 @@ npm run typecheck
 | --- | --- | --- |
 | `it/auth-me.spec.ts` | LB-88, LB-95, LB-96 | `/auth/me` không cookie (401); CORS credentials gắn cố định với origin web, không phản chiếu origin lạ; session còn nhiều ngày không rotation, `no-store` |
 | `it/callback.spec.ts` | LB-89 | Mọi cách `/auth/callback` bị từ chối (state lạ/thiếu, thiếu code, user từ chối, replay state, Cognito từ chối code) không để lại cookie hay redirect; state gắn với trình duyệt (`@finding`) |
-| `it/auth-contract.spec.ts` | LB-85, LB-86, LB-96 | Body `/auth/me` chỉ có 4 field công khai; chỉ cookie mới xác thực (header, query bị 401); tên cookie khớp chính xác; logout chỉ POST; preflight CORS; 401 cũng `no-store` (LB-101) |
+| `it/auth-contract.spec.ts` | LB-85, LB-86, LB-91, LB-96 | Body `/auth/me` chỉ có 4 field công khai cộng `hasStore`; chỉ cookie mới xác thực (header, query bị 401); tên cookie khớp chính xác; logout chỉ POST; preflight CORS; 401 cũng `no-store` (LB-101) |
 | `it/logout.spec.ts` | LB-85 | Logout không cookie/token lạ vẫn 204, gọi hai lần an toàn, session đã revoke không bị gia hạn; logout cũng cắt token cũ còn trong grace (LB-102) |
 | `it/schema.spec.ts` | LB-83, LB-84 | Unique, check 7 ngày, cascade, không có cột refresh/raw token; session do API tạo chỉ lưu SHA-256 |
 | `it/session-rotation.spec.ts` | LB-95 | Rotation khi còn dưới 2 giờ, session mới 7 ngày, grace period, hết grace bị từ chối, request song song chỉ một session mới, hết hạn và revoke bị từ chối |

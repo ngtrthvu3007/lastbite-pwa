@@ -22,7 +22,9 @@ test.afterEach(async () => {
 test.afterAll(closeDb);
 
 test.describe('what /auth/me returns', () => {
-  test('[LB-85] the body is the public user and nothing else', async ({ request }) => {
+  test('[LB-85][LB-91] the body is the public user plus hasStore and nothing else', async ({
+    request,
+  }) => {
     const { userId, email, token } = await seed();
 
     const response = await request.get('/auth/me', { headers: { cookie: `${SESSION_COOKIE}=${token}` } });
@@ -32,8 +34,14 @@ test.describe('what /auth/me returns', () => {
 
     expect(response.status()).toBe(200);
     // Nullable fields are present as null, so the web app can rely on the shape.
-    expect(Object.keys(body).sort()).toEqual(['avatarUrl', 'displayName', 'email', 'id']);
-    expect(body).toMatchObject({ id: userId, email, displayName: 'IT user', avatarUrl: null });
+    expect(Object.keys(body).sort()).toEqual(['avatarUrl', 'displayName', 'email', 'hasStore', 'id']);
+    expect(body).toMatchObject({
+      id: userId,
+      email,
+      displayName: 'IT user',
+      avatarUrl: null,
+      hasStore: false,
+    });
     expect(JSON.stringify(body)).not.toContain(token);
   });
 

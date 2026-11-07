@@ -26,12 +26,17 @@ import { CurrentUser, CurrentUserDto } from '../common';
 import { AuthGuard } from './auth.guard';
 import { AuthService } from './auth.service';
 import { AuthLoginQueryDto } from './dto/auth-login-query.dto';
+import { AuthMeResponseDto } from './dto/auth-me-response.dto';
 import { OAuthCallbackQueryDto } from './dto/oauth-callback-query.dto';
+import { UserService } from './user.service';
 
 @Controller('auth')
 @ApiTags('Auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly userService: UserService,
+  ) {}
 
   @Get('login')
   @ApiOperation({ summary: 'Start Google OAuth login' })
@@ -68,10 +73,12 @@ export class AuthController {
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: 'Get the current LastBite user' })
   @ApiCookieAuth(AUTH_COOKIE_NAME)
-  @ApiOkResponse({ type: CurrentUserDto })
+  @ApiOkResponse({ type: AuthMeResponseDto })
   @ApiUnauthorizedResponse({ description: 'Session is missing, expired, or revoked.' })
-  meController(@CurrentUser() user: CurrentUserDto): CurrentUserDto {
-    return user;
+  async meController(@CurrentUser() user: CurrentUserDto): Promise<AuthMeResponseDto> {
+    const hasStore = await this.userService.hasStoreService(user.id);
+
+    return { ...user, hasStore };
   }
 
   @Post('logout')
