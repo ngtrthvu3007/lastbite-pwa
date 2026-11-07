@@ -1,8 +1,6 @@
 import { z } from 'zod'
 import { PATTERN } from '~/constants/common'
-
-const toLocalPhone = (value: string) =>
-  value.replace(PATTERN.PHONE_SEPARATOR, '').replace(PATTERN.PHONE_COUNTRY_CODE, '0')
+import { toLocalPhone } from '~/utils/phone'
 
 const requiredText = (requiredCode: string, invalidCode: string, min: number, max: number) =>
   z

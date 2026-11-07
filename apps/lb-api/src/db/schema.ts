@@ -70,6 +70,7 @@ export const posts = pgTable(
     storeNameSnapshot: varchar('store_name_snapshot', { length: 100 }).notNull(),
     phoneSnapshot: varchar('phone_snapshot', { length: 10 }).notNull(),
     addressSnapshot: varchar('address_snapshot', { length: 255 }).notNull(),
+    closedAt: timestamp('closed_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [

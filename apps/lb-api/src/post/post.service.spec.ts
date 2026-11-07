@@ -1,6 +1,6 @@
 import { posts } from '../db/schema';
 import { MediaService } from '../media/media.service';
-import { CreatePostInput } from './dto/post.dto';
+import { CreatePostInput, PostStatus } from './dto/post.dto';
 import { PostService } from './post.service';
 
 const input: CreatePostInput = {
@@ -18,9 +18,8 @@ const input: CreatePostInput = {
   address: '123 Nguyen Hue',
 };
 
-const post = {
+const postRow = {
   id: 'a75b76bd-a219-4ad0-9fa1-66af88f021c0',
-  imageUrl: 'https://images.example.test/uploads/image.jpg',
   title: input.title,
   description: input.description,
   originalPrice: input.originalPrice,
@@ -33,6 +32,12 @@ const post = {
   phone: input.phone,
   address: input.address,
   createdAt: new Date('2030-01-01T09:00:00.000Z'),
+};
+
+const post = {
+  ...postRow,
+  imageUrl: 'https://images.example.test/uploads/image.jpg',
+  status: PostStatus.ACTIVE,
 };
 
 function createPostDb(storeResult: unknown[], postResult: unknown[]) {
@@ -49,7 +54,7 @@ function createPostDb(storeResult: unknown[], postResult: unknown[]) {
 
 describe('PostService', () => {
   it('uses the session owner store and saves immutable contact snapshots', async () => {
-    const { db, insert, values } = createPostDb([{ id: 'owned-store-id' }], [post]);
+    const { db, insert, values } = createPostDb([{ id: 'owned-store-id' }], [postRow]);
     const mediaService = {
       findUploadedPostImageAssetService: jest
         .fn()

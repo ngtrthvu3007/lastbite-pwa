@@ -1,26 +1,43 @@
 # Test results
 
-Generated: 2026-11-07T16:28:44.855Z
+Generated: 2026-11-07T18:07:04.582Z
 
-Passed 2, failed 0, skipped 0 of 2.
+Passed 5, failed 0, skipped 0 of 5.
 
 | # | Project | Test | Result | Time |
 | --- | --- | --- | --- | --- |
-| 1 | e2e | Quick Post › [LB-20] keeps the form open and shows time errors before uploading an image | passed | 5341 ms |
-| 2 | e2e | Quick Post › [LB-20] uploads the selected image, then creates a post with the edited contact snapshot | passed | 1542 ms |
+| 1 | it | public post discovery › [LB-19] [LB-20] returns only active posts with their immutable contact snapshot | passed | 243 ms |
+| 2 | it | public post discovery › [LB-19] [LB-20] returns one active post by id and hides expired posts | passed | 60 ms |
+| 3 | it | public post discovery › [LB-22] closes an owned post and hides it from active discovery | passed | 80 ms |
+| 4 | it | public post discovery › [LB-22] rejects a close request from a non-owner | passed | 45 ms |
+| 5 | it | public post discovery › [LB-22] rejects closing expired or already closed posts | passed | 81 ms |
 
-## 1. Quick Post › [LB-20] keeps the form open and shows time errors before uploading an image
+## 1. public post discovery › [LB-19] [LB-20] returns only active posts with their immutable contact snapshot
 
-- Project: e2e
-- File: e2e/post.spec.ts
-- Result: passed (5341 ms)
+- Project: it
+- File: it/post.spec.ts
+- Result: passed (243 ms)
 
-![screenshot](screenshots/01-screenshot-0.png)
+## 2. public post discovery › [LB-19] [LB-20] returns one active post by id and hides expired posts
 
-## 2. Quick Post › [LB-20] uploads the selected image, then creates a post with the edited contact snapshot
+- Project: it
+- File: it/post.spec.ts
+- Result: passed (60 ms)
 
-- Project: e2e
-- File: e2e/post.spec.ts
-- Result: passed (1542 ms)
+## 3. public post discovery › [LB-22] closes an owned post and hides it from active discovery
 
-![screenshot](screenshots/02-screenshot-0.png)
+- Project: it
+- File: it/post.spec.ts
+- Result: passed (80 ms)
+
+## 4. public post discovery › [LB-22] rejects a close request from a non-owner
+
+- Project: it
+- File: it/post.spec.ts
+- Result: passed (45 ms)
+
+## 5. public post discovery › [LB-22] rejects closing expired or already closed posts
+
+- Project: it
+- File: it/post.spec.ts
+- Result: passed (81 ms)
