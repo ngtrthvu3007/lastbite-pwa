@@ -8,6 +8,7 @@ Hạ tầng AWS của LastBite, quản lý bằng Terraform.
 |---|---|---|
 | `bootstrap/` | Bucket S3 chứa state cho các thư mục còn lại | Lưu ở máy người đã chạy |
 | `cognito/` | Cognito user pool, domain, Google IdP, app client | S3 |
+| `media/` | Private S3 bucket and IAM policy for product-image uploads | S3 |
 
 Mỗi thư mục là một root module độc lập: `cd` vào rồi chạy lệnh trong đó.
 

@@ -7,8 +7,12 @@ cấu hình Cognito nằm trong `infra/cognito/`.
 
 - Chỉ Cognito, vì code auth của `lb-api` đang chỉ phụ thuộc đúng thứ này trên AWS.
   - Lý do: hạ tầng thêm theo nhu cầu thật của code, không dựng trước.
-- Chưa làm: S3 ảnh sản phẩm, ECR, IAM cho GitHub Actions, chỗ chạy ứng dụng.
-  - Mỗi thứ thêm khi code tới đúng chỗ đó (upload ảnh, Dockerfile production, CD).
+- Đã có S3 ảnh sản phẩm trong `infra/media/`: bucket private, encryption,
+  versioning, CORS cho presigned upload, và IAM policy tối thiểu cho API.
+  - `PRODUCT_IMAGE_BUCKET` và `AWS_REGION` (giá trị từ `PRODUCT_IMAGE_REGION` output) được điền vào
+    `apps/lb-api/.env`; attach `API_MEDIA_POLICY_ARN` vào runtime IAM principal.
+- Chưa làm: ECR, IAM cho GitHub Actions, chỗ chạy ứng dụng.
+  - Mỗi thứ thêm khi code tới đúng chỗ đó (Dockerfile production, CD).
 - Chưa chốt có dùng Kubernetes hay không, nên chưa viết gì cho compute.
   - Khi chốt, cập nhật dòng mô tả `infra/` và `k8s/` trong `AGENTS.md` và `docs/brainstom.md`.
 
