@@ -1,13 +1,9 @@
 import { z } from 'zod'
 import { PATTERN } from '~/constants/common'
 import { STORE } from '~/constants/store'
+import { toLocalPhone } from '~/utils/phone'
 
 const { CONSTRAINTS, ERROR_CODE } = STORE
-
-// 0901 234 567 and +84901234567 both become 0901234567 (84 / +84 is swapped for the local prefix 0),
-// the form the API stores.
-const toLocalPhone = (value: string) =>
-  value.replace(PATTERN.PHONE_SEPARATOR, '').replace(PATTERN.PHONE_COUNTRY_CODE, '0')
 
 // The message of every issue is an error code, mapped to text by STORE.ERROR_MESSAGE_KEY.
 export const createStoreSchema = z.object({

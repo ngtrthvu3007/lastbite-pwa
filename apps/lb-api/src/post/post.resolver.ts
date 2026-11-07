@@ -2,7 +2,7 @@ import { ParseUUIDPipe, UseGuards } from '@nestjs/common';
 import { Args, ID, Int, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { AuthGuard } from '../auth/auth.guard';
 import { CurrentUser, CurrentUserDto } from '../common';
-import { CreatePostInput, PostDto } from './dto/post.dto';
+import { ClosePostInput, CreatePostInput, PostDto } from './dto/post.dto';
 import { PostService } from './post.service';
 
 @Resolver()
@@ -18,6 +18,15 @@ export class PostResolver {
     return this.postService.createPostService(user.id, input);
   }
 
+  @Mutation(() => PostDto, { name: 'closePost' })
+  @UseGuards(AuthGuard)
+  closePostResolver(
+    @CurrentUser() user: CurrentUserDto,
+    @Args('input') input: ClosePostInput,
+  ): Promise<PostDto> {
+    return this.postService.closePostService(user.id, input.postId);
+  }
+
   @Query(() => [PostDto], { name: 'activePosts' })
   activePostsResolver(
     @Args('limit', { type: () => Int, defaultValue: 20 }) limit: number,
@@ -29,6 +38,6 @@ export class PostResolver {
   postResolver(
     @Args('id', { type: () => ID }, new ParseUUIDPipe()) id: string,
   ): Promise<PostDto | null> {
-    return this.postService.findActivePostService(id);
+    return this.postService.findPublicPostService(id);
   }
 }

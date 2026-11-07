@@ -1,4 +1,12 @@
-import { Field, GraphQLISODateTime, ID, InputType, Int, ObjectType } from '@nestjs/graphql';
+import {
+  Field,
+  GraphQLISODateTime,
+  ID,
+  InputType,
+  Int,
+  ObjectType,
+  registerEnumType,
+} from '@nestjs/graphql';
 import { Transform, Type, type TransformFnParams } from 'class-transformer';
 import {
   IsDate,
@@ -11,18 +19,25 @@ import {
   Matches,
   Min,
 } from 'class-validator';
-
-const PHONE_SEPARATOR_PATTERN = /[\s.-]/g;
-const PHONE_COUNTRY_CODE_PATTERN = /^\+?84/;
-const PHONE_DIGITS_PATTERN = /^\d+$/;
+import { LOCAL_PHONE_DIGITS_PATTERN, toLocalPhone } from '../../common';
 
 const trimText = ({ value }: TransformFnParams): unknown =>
   typeof value === 'string' ? value.trim() : value;
 
-const toLocalPhone = ({ value }: TransformFnParams): unknown =>
-  typeof value === 'string'
-    ? value.replace(PHONE_SEPARATOR_PATTERN, '').replace(PHONE_COUNTRY_CODE_PATTERN, '0')
-    : value;
+export enum PostStatus {
+  ACTIVE = 'ACTIVE',
+  CLOSED = 'CLOSED',
+  EXPIRED = 'EXPIRED',
+}
+
+registerEnumType(PostStatus, { name: 'PostStatus' });
+
+@InputType()
+export class ClosePostInput {
+  @Field(() => ID)
+  @IsUUID(undefined, { message: 'POST_ID_INVALID' })
+  postId: string;
+}
 
 @InputType()
 export class CreatePostInput {
@@ -80,10 +95,10 @@ export class CreatePostInput {
   storeName: string;
 
   @Field()
-  @Transform(toLocalPhone)
+  @Transform(({ value }: TransformFnParams) => toLocalPhone(value))
   @IsNotEmpty({ message: 'PHONE_REQUIRED' })
   @IsMobilePhone('vi-VN', undefined, { message: 'PHONE_INVALID' })
-  @Matches(PHONE_DIGITS_PATTERN, { message: 'PHONE_INVALID' })
+  @Matches(LOCAL_PHONE_DIGITS_PATTERN, { message: 'PHONE_INVALID' })
   phone: string;
 
   @Field()
@@ -136,4 +151,7 @@ export class PostDto {
 
   @Field(() => GraphQLISODateTime)
   createdAt: Date;
+
+  @Field(() => PostStatus)
+  status: PostStatus;
 }
