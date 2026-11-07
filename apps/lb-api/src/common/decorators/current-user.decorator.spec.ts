@@ -20,19 +20,35 @@ class TestController {
 CurrentUser()(TestController.prototype, HANDLER_NAME, 0);
 
 // createParamDecorator hides its factory; read it back from the route args metadata.
-function runDecorator(request: object): CurrentUserDto {
+function runDecorator(context: ExecutionContextHost): CurrentUserDto {
   const args = Reflect.getMetadata(ROUTE_ARGS_METADATA, TestController, HANDLER_NAME);
   const { factory } = args[Object.keys(args)[0]];
 
-  return factory(undefined, new ExecutionContextHost([request]));
+  return factory(undefined, context);
+}
+
+// A resolver receives [root, args, context, info]; the request sits in context.req.
+function createGraphqlContext(request: object): ExecutionContextHost {
+  const context = new ExecutionContextHost([undefined, undefined, { req: request }, undefined]);
+  context.setType('graphql');
+
+  return context;
 }
 
 describe('CurrentUser', () => {
   it('returns the user that AuthGuard attached to the request', () => {
-    expect(runDecorator({ currentUser: USER })).toBe(USER);
+    expect(runDecorator(new ExecutionContextHost([{ currentUser: USER }]))).toBe(USER);
   });
 
   it('throws 401 when no user is attached, for example a route without AuthGuard', () => {
-    expect(() => runDecorator({})).toThrow(UnauthorizedException);
+    expect(() => runDecorator(new ExecutionContextHost([{}]))).toThrow(UnauthorizedException);
+  });
+
+  it('returns the user attached to the GraphQL request', () => {
+    expect(runDecorator(createGraphqlContext({ currentUser: USER }))).toBe(USER);
+  });
+
+  it('throws 401 in a GraphQL resolver without AuthGuard', () => {
+    expect(() => runDecorator(createGraphqlContext({}))).toThrow(UnauthorizedException);
   });
 });

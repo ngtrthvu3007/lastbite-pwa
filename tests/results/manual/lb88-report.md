@@ -4,8 +4,8 @@ Date: 2026-10-29. Run by hand through the Playwright MCP browser. Google sign-in
 
 | Item | Value |
 | --- | --- |
-| Web | http://localhost:5173 (`apps/lb-web`, dev server) |
-| API | http://localhost:3000 (`apps/lb-api`) |
+| Web | <http://localhost:5173> (`apps/lb-web`, dev server) |
+| API | <http://localhost:3000> (`apps/lb-api`) |
 | Screen | Chromium, viewport 412x915 |
 | Auth | Cognito (Terraform-managed, managed login) with Google, real account |
 
@@ -22,17 +22,7 @@ Date: 2026-10-29. Run by hand through the Playwright MCP browser. Google sign-in
 
 User id on both sign-ins: `535e4c38-3034-46a1-8dc9-d304c72e0f58`.
 
-Screenshots:
-
-![M-02 Google](screenshots/lb88-01-google-chooser.png)
-
-![M-03/M-04 signed in](screenshots/lb88-02-merchant-signed-in.png)
-
-![M-06 after logout](screenshots/lb88-03-after-logout.png)
-
-![M-07 second sign-in](screenshots/lb88-04-google-second-login.png)
-
-![M-08 second sign-in done](screenshots/lb88-05-second-login-merchant.png)
+Screenshots of this run are not kept in the repository.
 
 ## Limits
 

@@ -83,6 +83,22 @@ export async function deleteUser(userId: string) {
   await getPool().query('delete from users where id = $1', [userId]);
 }
 
+export interface StoreInput {
+  name: string;
+  phone: string;
+  address: string;
+}
+
+// A store for a seeded user. It goes with the user (ON DELETE CASCADE).
+export async function seedStore(userId: string, store: StoreInput) {
+  await getPool().query('insert into stores (owner_id, name, phone, address) values ($1, $2, $3, $4)', [
+    userId,
+    store.name,
+    store.phone,
+    store.address,
+  ]);
+}
+
 // For tests that probe the schema itself (constraints, columns) rather than the API.
 export const queryDb = (text: string, params: unknown[] = []) => getPool().query(text, params);
 
