@@ -14,3 +14,9 @@ if (!existsSync(envPath)) {
 for (const [name, value] of Object.entries(parseEnv(readFileSync(envPath, 'utf8')))) {
   process.env[name] ??= value;
 }
+
+// S3 URL signing needs credentials but does not call S3 in tests.
+process.env.AWS_REGION = 'ap-southeast-1';
+process.env.PRODUCT_IMAGE_BUCKET = 'lastbite-test-product-images';
+process.env.AWS_ACCESS_KEY_ID = 'lastbite-test-access-key';
+process.env.AWS_SECRET_ACCESS_KEY = 'lastbite-test-secret-key';

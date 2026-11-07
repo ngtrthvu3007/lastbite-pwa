@@ -9,6 +9,8 @@ import { DatabaseModule } from './db/database.module';
 import { AuthModule } from './auth/auth.module';
 import { HealthResolver } from './health/health.resolver';
 import { StoreModule } from './store/store.module';
+import { MediaModule } from './media/media.module';
+import { PostModule } from './post/post.module';
 import { isProduction, ValidationExceptionFilter } from './common';
 
 @Module({
@@ -17,6 +19,8 @@ import { isProduction, ValidationExceptionFilter } from './common';
     DatabaseModule,
     AuthModule,
     StoreModule,
+    MediaModule,
+    PostModule,
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       autoSchemaFile: true,
